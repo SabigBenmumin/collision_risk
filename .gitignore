@@ -5,6 +5,16 @@
 # โฟลเดอร์ 'ouput' ใช้สำหรับเก็บผลลัพธ์ของการรัน (ภาพ, วิดีโอ, log)
 # ไม่ควรถูก Commit เข้า Git
 ouput/
+img/
+extracted_frames_dataset/
+oneway_vedio/
+TestDataset/
+TestDataset5classes/
+test_results/
+test_results_withthreshold/
+runs/
+speed_fixed/
+
 # (ถ้าใช้ Jupyter Notebooks หรือ IDE)
 .ipynb_checkpoints/
 __pycache__/

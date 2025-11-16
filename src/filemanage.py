@@ -4,6 +4,35 @@ import os, datetime
 import cv2
 import numpy as np
 
+def select_model_file():
+    """
+    เปิดหน้าต่าง File Dialog เพื่อให้ผู้ใช้เลือกไฟล์ model
+    และคืนค่าเป็น path ของไฟล์ที่เลือก
+    """
+    # ซ่อนหน้าต่างหลักของ Tkinter (เพราะเราต้องการแค่ File Dialog)
+    root = tk.Tk()
+    root.withdraw() 
+    
+    # กำหนดประเภทไฟล์ที่อนุญาตให้เลือก
+    file_types = [
+        ('Model Files', ('*.pt',)),
+        ('All Files', '*.*')
+    ]
+
+    # เปิดหน้าต่างสำหรับเลือกไฟล์
+    model_path = filedialog.askopenfilename(
+        title="Select Model File", 
+        filetypes=file_types
+    )
+    
+    # ตรวจสอบว่าผู้ใช้เลือกไฟล์หรือไม่
+    if model_path:
+        print(f"Selected file path: {model_path}")
+        return model_path
+    else:
+        print("No file selected.")
+        return None
+
 def select_video_file():
     """
     เปิดหน้าต่าง File Dialog เพื่อให้ผู้ใช้เลือกไฟล์วิดีโอ 
@@ -34,7 +63,6 @@ def select_video_file():
     else:
         print("No file selected.")
         return None
-
 # ----------------- ตัวอย่างการใช้งาน -----------------
 
 if __name__ == '__main__':

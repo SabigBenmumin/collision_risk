@@ -5,7 +5,7 @@ import os
 import numpy as np
 from collections import defaultdict, deque
 from filemanage import select_video_file, get_runid, create_outputfolder, handle_risk_event, select_txt_file
-import get_fps
+import time
 
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 
@@ -247,6 +247,7 @@ class CalibrationTool:
                     
                 elif choice == '2':
                     # โหลดจาก txt file
+                    # file_path = input("\nEnter txt file path: ").strip()
                     file_path = select_txt_file()
                     if self.load_points_from_txt(file_path):
                         self.draw_points_on_frame()
@@ -369,9 +370,8 @@ if __name__ == "__main__":
     speed_memory = defaultdict(lambda: deque(maxlen=5))
     model = YOLO(r"models/best.pt")
 
-    REAL_FPS = get_fps.get_video_fps_cv2(video_path=video_path)
     PROCESS_EVERY_N_FRAME = 1
-    print(f"fps: {REAL_FPS}")
+    REAL_FPS = 55
     FPS = REAL_FPS/PROCESS_EVERY_N_FRAME
     frame_count = 0
 
@@ -405,22 +405,21 @@ if __name__ == "__main__":
     speed_history = defaultdict(list)
 
     while cap.isOpened():
+        t0 = time.perf_counter() #read
         success, frame = cap.read()
         if not success:
             break
-        
         frame_count = frame_count + 1
         if frame_count % PROCESS_EVERY_N_FRAME != 0:
             continue
-
-        # วาดพื้นที่ calibration บนเฟรม (โปร่งแสง)
         if CALIBRATION_POLYGON is not None:
             overlay = frame.copy()
             cv2.polylines(overlay, [CALIBRATION_POLYGON], True, (0, 255, 255), 2)
             cv2.fillPoly(overlay, [CALIBRATION_POLYGON], (0, 255, 255))
             frame = cv2.addWeighted(overlay, 0.1, frame, 0.9, 0)
-        
-        results = model.predict(source=frame, stream=True, conf=0.65)
+
+        t1 = time.perf_counter() #yolo
+        results = model.predict(source=frame, stream=True, conf=0.65,)
         result = next(results)
 
         detections = sv.Detections.from_ultralytics(result)
@@ -428,6 +427,7 @@ if __name__ == "__main__":
 
         # วาดเส้นทาง
         points = detections.get_anchors_coordinates(anchor=sv.Position.BOTTOM_CENTER).astype(int)
+        t2 = time.perf_counter() # plot
         annotated_frame = trace_annotator.annotate(scene=result.plot(), detections=detections)
 
         # วาดพื้นที่ calibration บน annotated_frame
@@ -449,9 +449,11 @@ if __name__ == "__main__":
                 if len(speed_memory[tracker_id]) >= 2 and HOMOGRAPHY_MATRIX is not None:
                     p1 = speed_memory[tracker_id][0]
                     p2 = speed_memory[tracker_id][-1]
-                    
+
+                    t3 = time.perf_counter()
                     # ใช้ homography คำนวณระยะทางจริง
                     real_distance = calculate_real_distance(p1, p2, HOMOGRAPHY_MATRIX)
+                    t4 = time.perf_counter()
                     
                     if real_distance is not None and real_distance > 0:
                         num_frames = len(speed_memory[tracker_id]) - 1
@@ -476,6 +478,7 @@ if __name__ == "__main__":
                             cv2.putText(annotated_frame, f"Speed: {display_speed:.1f} km/h",
                                         (point[0] - 50, point[1] - 40),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    print(f"Read:{(t1-t0)*1000:.1f}ms | YOLO:{(t2-t1)*1000:.1f}ms | Plot:{(t3-t2)*1000:.1f}ms | Logic:{(t4-t3)*1000:.1f}ms")
             else:
                 # ถ้าเพิ่งออกจากโซน ให้คำนวณความเร็วเฉลี่ยจากประวัติทั้งหมด
                 if object_in_zone[tracker_id]:
@@ -509,6 +512,7 @@ if __name__ == "__main__":
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 165, 0), 2)  # สีส้ม
 
         cv2.imshow("YOLOv8 Object Detection", annotated_frame)
+        print(f"frame elapsed time: {(time.perf_counter()-t0)*1000:.1f}")
         
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

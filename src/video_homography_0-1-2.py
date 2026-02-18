@@ -384,23 +384,71 @@ def estimate_direction(track_points):
     angle = np.degrees(np.arctan2(vy, vx))
     return float(angle), (vx, vy, x0, y0)
 
+def project_future_point(point, direction_vector, speed_mps, n_seconds, homography_matrix, track_points):
+    if homography_matrix is None or direction_vector is None or speed_mps <= 0:
+        return None
 
-def draw_direction_line(frame, point, direction_vector, length=60, color=(0, 0, 255), thickness=2):
-    """วาดเส้นตรงแสดงทิศทาง (แทน arrow)"""
+    vx, vy, x0, y0 = direction_vector
+
+    real_current = transform_point(point, homography_matrix)
+    if real_current is None:
+        return None
+
+    # แปลง direction vector → real-world space
+    pt_base = transform_point((int(x0), int(y0)), homography_matrix)
+    pt_tip  = transform_point((int(x0 + vx * 100), int(y0 + vy * 100)), homography_matrix)
+    if pt_base is None or pt_tip is None:
+        return None
+
+    real_vx = pt_tip[0] - pt_base[0]
+    real_vy = pt_tip[1] - pt_base[1]
+    norm = np.sqrt(real_vx**2 + real_vy**2)
+    if norm == 0:
+        return None
+    real_vx /= norm
+    real_vy /= norm
+
+    # ตรวจสอบทิศใน real-world space อีกครั้ง
+    # โดยเปรียบเทียบกับ displacement จริงของ track_points
+    first_real = transform_point(track_points[0], homography_matrix)
+    last_real  = transform_point(track_points[-1], homography_matrix)
+    if first_real is not None and last_real is not None:
+        dx = last_real[0] - first_real[0]
+        dy = last_real[1] - first_real[1]
+        if (real_vx * dx + real_vy * dy) < 0:
+            real_vx, real_vy = -real_vx, -real_vy
+
+    real_distance = speed_mps * n_seconds
+    future_real_x = real_current[0] + real_vx * real_distance
+    future_real_y = real_current[1] + real_vy * real_distance
+
+    H_inv = np.linalg.inv(homography_matrix)
+    future_pt = np.array([[[future_real_x, future_real_y]]], dtype=np.float32)
+    future_pixel = cv2.perspectiveTransform(future_pt, H_inv)
+
+    return (int(future_pixel[0][0][0]), int(future_pixel[0][0][1]))
+def draw_direction_line(frame, point, direction_vector, track_points=None, speed_mps=None,
+                        n_seconds=2.0, homography_matrix=None,
+                        fallback_length=60, color=(0, 0, 255), thickness=2):
     if direction_vector is None:
         return
-    
+
+    if speed_mps is not None and homography_matrix is not None and speed_mps > 0 and track_points is not None:
+        future_point = project_future_point(point, direction_vector, speed_mps, n_seconds, homography_matrix, track_points)
+        if future_point is not None:
+            cv2.line(frame, (int(point[0]), int(point[1])), future_point, color, thickness)
+            return
+
     vx, vy, x0, y0 = direction_vector
-    
-    end_x = int(point[0] + vx * length)
-    end_y = int(point[1] + vy * length)
-    
-    # เปลี่ยนจาก arrowedLine เป็น line
-    cv2.line(frame,
-             (int(point[0]), int(point[1])),
-             (end_x, end_y),
-             color, thickness)
-    
+    end_x = int(point[0] + vx * fallback_length)
+    end_y = int(point[1] + vy * fallback_length)
+    cv2.line(frame, (int(point[0]), int(point[1])), (end_x, end_y), color, thickness)
+
+def is_near_frame_edge(point, frame_shape, margin=50):
+    """ถ้า object อยู่ใกล้ขอบ frame ภายใน margin pixels ให้ถือว่ากำลังออก"""
+    h, w = frame_shape[:2]
+    x, y = point
+    return x < margin or x > w - margin or y < margin or y > h - margin
 if __name__ == "__main__":
     video_path = select_video_file()
     cap = cv2.VideoCapture(video_path)
@@ -482,8 +530,16 @@ if __name__ == "__main__":
             
             direction_memory[tracker_id].append(point)
             angle, dir_vec = estimate_direction(direction_memory[tracker_id])
-            if dir_vec is not None:
-                draw_direction_line(annotated_frame, point, dir_vec)
+            if dir_vec is not None and not is_near_frame_edge(point, annotated_frame.shape):
+                current_speed_mps = last_speed[tracker_id] / 3.6
+                draw_direction_line(
+                    annotated_frame, point, dir_vec,
+                    track_points=list(direction_memory[tracker_id]),
+                    speed_mps=current_speed_mps,
+                    n_seconds=1,
+                    homography_matrix=HOMOGRAPHY_MATRIX,
+                    color=(0,0,255), thickness=2
+                    )
                 cv2.putText(annotated_frame, f"{angle:.0f}deg",
                             (point[0] - 50, point[1] - 60),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)

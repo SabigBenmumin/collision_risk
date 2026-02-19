@@ -449,6 +449,7 @@ def is_near_frame_edge(point, frame_shape, margin=50):
     h, w = frame_shape[:2]
     x, y = point
     return x < margin or x > w - margin or y < margin or y > h - margin
+
 if __name__ == "__main__":
     video_path = select_video_file()
     cap = cv2.VideoCapture(video_path)
@@ -540,9 +541,9 @@ if __name__ == "__main__":
                     homography_matrix=HOMOGRAPHY_MATRIX,
                     color=(0,0,255), thickness=2
                     )
-                cv2.putText(annotated_frame, f"{angle:.0f}deg",
-                            (point[0] - 50, point[1] - 60),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
+                # cv2.putText(annotated_frame, f"{angle:.0f}deg",
+                #             (point[0] - 50, point[1] - 60),
+                #             cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
             # อัพเดท speed_memory เฉพาะเมื่ออยู่ในโซน
             if in_zone:
                 speed_memory[tracker_id].append(point)

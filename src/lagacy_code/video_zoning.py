@@ -1,0 +1,300 @@
+import cv2
+from ultralytics import YOLO
+import supervision as sv
+import os
+import numpy as np
+from collections import defaultdict, deque
+from filemanage import select_video_file, get_runid, create_outputfolder, handle_risk_event
+
+os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
+
+class CalibrationTool:
+    def __init__(self):
+        self.points = []
+        self.frame = None
+        self.original_frame = None
+        self.polygon = None  # เพิ่ม polygon สำหรับเช็คพื้นที่
+        
+    def mouse_callback(self, event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN and len(self.points) < 4:
+            self.points.append((x, y))
+            print(f"Point {len(self.points)}: ({x}, {y})")
+            
+            # วาดจุดและเลขบนภาพ
+            self.frame = self.original_frame.copy()
+            for idx, pt in enumerate(self.points):
+                cv2.circle(self.frame, pt, 5, (0, 255, 0), -1)
+                cv2.putText(self.frame, str(idx+1), (pt[0]+10, pt[1]-10),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            
+            # วาดเส้นเชื่อม
+            if len(self.points) > 1:
+                for i in range(len(self.points)-1):
+                    cv2.line(self.frame, self.points[i], self.points[i+1], (255, 0, 0), 2)
+            
+            # วาดเส้นปิดรูป
+            if len(self.points) == 4:
+                cv2.line(self.frame, self.points[3], self.points[0], (255, 0, 0), 2)
+                # สร้าง polygon
+                self.polygon = np.array(self.points, dtype=np.int32)
+            
+            cv2.imshow("Calibration", self.frame)
+    
+    def calculate_distances(self):
+        """คำนวดระยะทางในหน่วยพิกเซลของแต่ละด้าน"""
+        if len(self.points) != 4:
+            print("There must be only 4 points!")
+            return None
+        
+        distances = []
+        labels = ["top (1-2)", "right (2-3)", "bottom (3-4)", "left (4-1)"]
+        
+        for i in range(4):
+            p1 = self.points[i]
+            p2 = self.points[(i+1) % 4]
+            dist = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+            distances.append(dist)
+            print(f"{labels[i]}: {dist:.2f} pixel")
+        
+        return distances
+    
+    def calculate_scale(self, distances, real_distances):
+        """คำนวดมาตราส่วน pixel to meter"""
+        if len(distances) != 4 or len(real_distances) != 4:
+            print("The actual distance on all 4 sides must be specified.")
+            return None
+        
+        scales = []
+        labels = ["top", "right", "bottom", "left"]
+        
+        print("\n=== scale calculation ===")
+        for i in range(4):
+            if real_distances[i] > 0:
+                scale = real_distances[i] / distances[i]
+                scales.append(scale)
+                print(f"{labels[i]}: {distances[i]:.2f} px = {real_distances[i]:.2f} m → scale = {scale:.5f} m/px")
+        
+        avg_scale = np.mean(scales)
+        print(f"\n>>> average scale: {avg_scale:.5f} meter/pixel <<<")
+        print(f">>> using PIXEL_TO_METER = {avg_scale:.5f} <<<\n")
+        
+        return avg_scale
+    
+    def get_polygon(self):
+        """คืนค่า polygon ของพื้นที่ที่เลือก"""
+        if len(self.points) == 4:
+            return np.array(self.points, dtype=np.int32)
+        return None
+    
+    def run(self, video_path):
+        """เรียกใช้งาน calibration tool และคืนค่า PIXEL_TO_METER และ polygon"""
+        cap = cv2.VideoCapture(video_path)
+        
+        if not cap.isOpened():
+            print("Error: failed to open video")
+            return None, None
+        
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: failed to read a first frame")
+            cap.release()
+            return None, None
+        
+        self.original_frame = frame.copy()
+        self.frame = frame.copy()
+        
+        cv2.namedWindow("Calibration")
+        cv2.setMouseCallback("Calibration", self.mouse_callback)
+        
+        print("\n=== Calibration tools ===")
+        print("Instructions:")
+        print("1. Click 4 points to create a rectangle on the surface with known distances")
+        print("   (e.g., lane width, line length)")
+        print("2. Click in the following order: top left -> top right -> bottom right -> bottom left")
+        print("3. Press 'c' when all 4 points are selected")
+        print("4. Press 'r' to restart")
+        print("5. Press 'q' to complete the calibration\n")
+        
+        cv2.imshow("Calibration", self.frame)
+        
+        pixel_to_meter = None
+        
+        while True:
+            key = cv2.waitKey(1) & 0xFF
+            
+            if key == ord('q'):
+                break
+            elif key == ord('r'):
+                # Reset
+                self.points = []
+                self.polygon = None
+                self.frame = self.original_frame.copy()
+                cv2.imshow("Calibration", self.frame)
+                print("\nReseted - Start selecting a new point")
+            elif key == ord('c') and len(self.points) == 4:
+                # คำนวดระยะทาง
+                print("\n=== distance as pixels ===")
+                distances = self.calculate_distances()
+                
+                if distances:
+                    print("\nPlease enter the actual distance (in meters) of each side:")
+                    real_distances = []
+                    labels = ["top (1-2)", "right (2-3)", "bottom (3-4)", "left (4-1)"]
+                    
+                    for i, label in enumerate(labels):
+                        while True:
+                            try:
+                                dist_input = input(f"{label} ({distances[i]:.2f} px) = ")
+                                real_dist = float(dist_input)
+                                real_distances.append(real_dist)
+                                break
+                            except ValueError:
+                                print("Please enter a number!")
+                    
+                    # คำนวดมาตราส่วน
+                    pixel_to_meter = self.calculate_scale(distances, real_distances)
+                    
+                    if pixel_to_meter:
+                        print(f"\n✓ Success! PIXEL_TO_METER = {pixel_to_meter:.5f}")
+                        print("Press 'q' to complete, or 'r' to reset\n")
+        
+        cap.release()
+        cv2.destroyAllWindows()
+        
+        return pixel_to_meter, self.get_polygon()
+
+def is_point_in_polygon(point, polygon):
+    """ตรวจสอบว่าจุดอยู่ภายในพื้นที่ polygon หรือไม่"""
+    if polygon is None:
+        return True  # ถ้าไม่มี polygon ให้ถือว่าทุกจุดอยู่ใน
+    
+    result = cv2.pointPolygonTest(polygon, (float(point[0]), float(point[1])), False)
+    return result >= 0
+
+def find_nearest_object(current_idx, points):
+    current_point = points[current_idx]
+    min_distance = float("inf")
+    for idx, point in enumerate(points):
+        if idx == current_idx:
+            continue
+        dx = point[0] - current_point[0]
+        dy = point[1] - current_point[1]
+        if dy > 0 and abs(dx) < 50:  # เฉพาะคันที่อยู่ด้านหน้าในแนวเดียวกัน
+            distance = np.hypot(dx, dy)
+            if distance < min_distance:
+                min_distance = distance
+    return min_distance if min_distance != float("inf") else None
+
+if __name__ == "__main__":
+    video_path = select_video_file()
+    cap = cv2.VideoCapture(video_path)
+    speed_memory = defaultdict(lambda: deque(maxlen=5))
+    model = YOLO(r"models/best.pt")
+    FPS = 25
+
+    byte_track = sv.ByteTrack(frame_rate=FPS)
+    trace_annotator = sv.TraceAnnotator(trace_length=FPS*2, thickness=2, position=sv.Position.BOTTOM_CENTER)
+
+    RUNID = get_runid()
+    print(RUNID)
+    OUTPUTDIR = create_outputfolder(RUNID)
+
+    try:
+        calibrator = CalibrationTool()
+        PIXEL_TO_METER, CALIBRATION_POLYGON = calibrator.run(video_path=video_path)
+    except Exception as e:
+        print(f"error: {e}")
+        PIXEL_TO_METER = None
+        CALIBRATION_POLYGON = None
+    
+    print(f"pixel to meter: {PIXEL_TO_METER}")
+    print(f"calibration polygon: {CALIBRATION_POLYGON is not None}")
+
+    if not cap.isOpened():
+        print("Error: could not open video file.")
+        exit()
+
+    # ตัวแปรเก็บสถานะว่าวัตถุอยู่ในพื้นที่หรือไม่
+    object_in_zone = defaultdict(bool)
+    # ตัวแปรเก็บความเร็วล่าสุดของแต่ละวัตถุ
+    last_speed = defaultdict(float)
+
+    while cap.isOpened():
+        success, frame = cap.read()
+        if success:
+            # วาดพื้นที่ calibration บนเฟรม (โปร่งแสง)
+            if CALIBRATION_POLYGON is not None:
+                overlay = frame.copy()
+                cv2.polylines(overlay, [CALIBRATION_POLYGON], True, (0, 255, 255), 2)
+                cv2.fillPoly(overlay, [CALIBRATION_POLYGON], (0, 255, 255))
+                frame = cv2.addWeighted(overlay, 0.1, frame, 0.9, 0)
+            
+            results = model.predict(source=frame, stream=True, conf=0.65)
+            result = next(results)
+
+            detections = sv.Detections.from_ultralytics(result)
+            detections = byte_track.update_with_detections(detections=detections)
+
+            # วาดเส้นทาง
+            points = detections.get_anchors_coordinates(anchor=sv.Position.BOTTOM_CENTER).astype(int)
+            annotated_frame = trace_annotator.annotate(scene=result.plot(), detections=detections)
+
+            # วาดพื้นที่ calibration บน annotated_frame ด้วย
+            if CALIBRATION_POLYGON is not None:
+                cv2.polylines(annotated_frame, [CALIBRATION_POLYGON], True, (0, 255, 255), 2)
+
+            for i, (tracker_id, point) in enumerate(zip(detections.tracker_id, points)):
+                if tracker_id is None:
+                    continue
+                
+                # ตรวจสอบว่าจุดอยู่ในพื้นที่ calibration หรือไม่
+                in_zone = is_point_in_polygon(point, CALIBRATION_POLYGON)
+                
+                # อัพเดท speed_memory เฉพาะเมื่ออยู่ในโซน
+                if in_zone:
+                    speed_memory[tracker_id].append(point)
+                    object_in_zone[tracker_id] = True
+                    
+                    if len(speed_memory[tracker_id]) >= 2:
+                        p1 = speed_memory[tracker_id][0]
+                        p2 = speed_memory[tracker_id][-1]
+                        
+                        dx = p2[0] - p1[0]
+                        dy = p2[1] - p1[1]
+                        pixel_dist = np.hypot(dx, dy)
+                        num_frames = len(speed_memory[tracker_id]) - 1
+                        time_elapsed_s = num_frames / FPS
+                        
+                        if time_elapsed_s > 0 and PIXEL_TO_METER is not None:
+                            speed_mps = (pixel_dist / time_elapsed_s) * PIXEL_TO_METER
+                            speed_kmh = speed_mps * 3.6
+                            
+                            # เก็บความเร็วล่าสุด
+                            last_speed[tracker_id] = speed_kmh
+
+                            cv2.putText(annotated_frame, f"Speed: {speed_kmh:.1f} km/h",
+                                        (point[0] - 50, point[1] - 40),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                else:
+                    # ถ้าออกจากโซน ให้ล้าง memory แต่ยังแสดงความเร็วล่าสุด
+                    if object_in_zone[tracker_id]:
+                        speed_memory[tracker_id].clear()
+                        object_in_zone[tracker_id] = False
+                    
+                    # แสดงความเร็วล่าสุด (ถ้ามี)
+                    if tracker_id in last_speed and last_speed[tracker_id] > 0:
+                        cv2.putText(annotated_frame, f"Speed: {last_speed[tracker_id]:.1f} km/h",
+                                    (point[0] - 50, point[1] - 40),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 165, 0), 2)  # สีส้มเพื่อแยกจากที่อยู่ในโซน
+
+            cv2.imshow("YOLOv8 Object Detection", annotated_frame)
+            
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    print("Video processing finished.")

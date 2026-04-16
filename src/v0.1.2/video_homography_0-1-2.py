@@ -363,23 +363,58 @@ def find_nearest_object(current_idx, points):
                 min_distance = distance
     return min_distance if min_distance != float("inf") else None
 
+# def estimate_direction(track_points):
+#     if len(track_points) < 5:
+#         return None, None
+    
+#     pts = np.array(list(track_points), dtype=np.float32).reshape(-1, 1, 2)
+#     output = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01)
+#     vx, vy, x0, y0 = float(output[0]), float(output[1]), float(output[2]), float(output[3])
+    
+#     # ตรวจสอบว่า vector ชี้ไปทิศเดียวกับการเคลื่อนที่จริงหรือไม่
+#     first = track_points[0]
+#     last = track_points[-1]
+#     dx = last[0] - first[0]
+#     dy = last[1] - first[1]
+    
+#     # ถ้า dot product ติดลบ แสดงว่า vector ชี้สวนทาง ให้กลับทิศ
+#     if (vx * dx + vy * dy) < 0:
+#         vx, vy = -vx, -vy
+    
+#     angle = np.degrees(np.arctan2(vy, vx))
+#     return float(angle), (vx, vy, x0, y0)
+
 def estimate_direction(track_points):
     if len(track_points) < 5:
         return None, None
     
-    pts = np.array(list(track_points), dtype=np.float32).reshape(-1, 1, 2)
-    output = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01)
-    vx, vy, x0, y0 = float(output[0]), float(output[1]), float(output[2]), float(output[3])
+    pts = list(track_points)
+    n = len(pts)
     
-    # ตรวจสอบว่า vector ชี้ไปทิศเดียวกับการเคลื่อนที่จริงหรือไม่
-    first = track_points[0]
-    last = track_points[-1]
-    dx = last[0] - first[0]
-    dy = last[1] - first[1]
+    # คำนวณ displacement ระหว่างจุดติดกัน และให้ weight มากกับจุดใหม่
+    total_vx, total_vy, total_w = 0.0, 0.0, 0.0
+    for i in range(1, n):
+        dx = pts[i][0] - pts[i-1][0]
+        dy = pts[i][1] - pts[i-1][1]
+        w = i  # จุดใหม่กว่าได้ weight มากกว่า
+        total_vx += dx * w
+        total_vy += dy * w
+        total_w += w
     
-    # ถ้า dot product ติดลบ แสดงว่า vector ชี้สวนทาง ให้กลับทิศ
-    if (vx * dx + vy * dy) < 0:
-        vx, vy = -vx, -vy
+    if total_w == 0:
+        return None, None
+    
+    vx = total_vx / total_w
+    vy = total_vy / total_w
+    
+    norm = np.sqrt(vx**2 + vy**2)
+    if norm < 1e-6:
+        return None, None
+    vx /= norm
+    vy /= norm
+    
+    # x0, y0 ใช้จุดล่าสุด
+    x0, y0 = float(pts[-1][0]), float(pts[-1][1])
     
     angle = np.degrees(np.arctan2(vy, vx))
     return float(angle), (vx, vy, x0, y0)
@@ -408,15 +443,15 @@ def project_future_point(point, direction_vector, speed_mps, n_seconds, homograp
     real_vx /= norm
     real_vy /= norm
 
-    # ตรวจสอบทิศใน real-world space อีกครั้ง
-    # โดยเปรียบเทียบกับ displacement จริงของ track_points
-    first_real = transform_point(track_points[0], homography_matrix)
-    last_real  = transform_point(track_points[-1], homography_matrix)
-    if first_real is not None and last_real is not None:
-        dx = last_real[0] - first_real[0]
-        dy = last_real[1] - first_real[1]
-        if (real_vx * dx + real_vy * dy) < 0:
-            real_vx, real_vy = -real_vx, -real_vy
+    # # ตรวจสอบทิศใน real-world space อีกครั้ง
+    # # โดยเปรียบเทียบกับ displacement จริงของ track_points
+    # first_real = transform_point(track_points[0], homography_matrix)
+    # last_real  = transform_point(track_points[-1], homography_matrix)
+    # if first_real is not None and last_real is not None:
+    #     dx = last_real[0] - first_real[0]
+    #     dy = last_real[1] - first_real[1]
+    #     if (real_vx * dx + real_vy * dy) < 0:
+    #         real_vx, real_vy = -real_vx, -real_vy
 
     real_distance = speed_mps * n_seconds
     future_real_x = real_current[0] + real_vx * real_distance

@@ -530,7 +530,7 @@ if __name__ == "__main__":
 
     RUNID = get_runid()
     print(RUNID)
-    OUTPUTDIR = create_outputfolder(RUNID)
+    # OUTPUTDIR = create_outputfolder(RUNID)
 
     try:
         calibrator = CalibrationTool()

@@ -8,13 +8,13 @@ assert cap.isOpened(), "Error reading video file"
 
 # Video writer
 w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+# video_writer = cv2.VideoWriter("speed_management.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
 # Initialize speed estimation object
 speedestimator = solutions.SpeedEstimator(
     show=True,  # display the output
     model=r"models/best.pt",  # path to the YOLO11 model file.
-    fps=30,  # adjust speed based on frame per second
+    fps=25,  # adjust speed based on frame per second
     # max_speed=120,  # cap speed to a max value (km/h) to avoid outliers
     # max_hist=5,  # minimum frames object tracked before computing speed
     # meter_per_pixel=0.05,  # highly depends on the camera configuration
@@ -34,8 +34,8 @@ while cap.isOpened():
 
     # print(results)  # access the output
 
-    video_writer.write(results.plot_im)  # write the processed frame.
+    # video_writer.write(results.plot_im)  # write the processed frame.
 
 cap.release()
-video_writer.release()
+# video_writer.release()
 cv2.destroyAllWindows()  # destroy all opened windows

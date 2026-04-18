@@ -707,36 +707,30 @@ if __name__ == "__main__":
                                             (point[0] - 50, point[1] - 40),
                                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             else:
-                # ถ้าเพิ่งออกจากโซน ให้คำนวณความเร็วเฉลี่ยจากประวัติทั้งหมด
-                if object_in_zone[tracker_id]:
-                    # ใช้ค่า median ของความเร็วทั้งหมดที่วัดได้ในโซน
-                    if len(speed_history[tracker_id]) > 0:
-                        # กรองค่าผิดปกติออก (ใช้เฉพาะค่าที่อยู่ใน IQR)
-                        speeds = np.array(speed_history[tracker_id])
-                        q1 = np.percentile(speeds, 25)
-                        q3 = np.percentile(speeds, 75)
-                        iqr = q3 - q1
-                        lower_bound = q1 - 1.5 * iqr
-                        upper_bound = q3 + 1.5 * iqr
-                        
-                        # กรองค่าที่อยู่นอก IQR
-                        filtered_speeds = speeds[(speeds >= lower_bound) & (speeds <= upper_bound)]
-                        
-                        if len(filtered_speeds) > 0:
-                            # ใช้ค่า median ของความเร็วที่ผ่านการกรอง
-                            final_speed = np.median(filtered_speeds)
-                            last_speed[tracker_id] = final_speed
-                    
-                    # ล้าง memory
-                    speed_memory[key].clear()
-                    speed_history[tracker_id].clear()
-                    object_in_zone[key] = False
-                
+                for zone_idx in range(len(ZONES)):
+                    key = (tracker_id, zone_idx)
+                    if object_in_zone.get(key, False):
+                        if len(speed_history[tracker_id]) > 0:
+                            speeds = np.array(speed_history[tracker_id])
+                            q1 = np.percentile(speeds, 25)
+                            q3 = np.percentile(speeds, 75)
+                            iqr = q3 - q1
+                            lower_bound = q1 - 1.5 * iqr
+                            upper_bound = q3 + 1.5 * iqr
+                            filtered_speeds = speeds[(speeds >= lower_bound) & (speeds <= upper_bound)]
+                            if len(filtered_speeds) > 0:
+                                final_speed = np.median(filtered_speeds)
+                                last_speed[tracker_id] = final_speed
+
+                        speed_memory[key].clear()
+                        speed_history[tracker_id].clear()
+                        object_in_zone[key] = False
+
                 # แสดงความเร็วล่าสุด (ถ้ามี)
                 if tracker_id in last_speed and last_speed[tracker_id] > 0:
                     cv2.putText(annotated_frame, f"Speed: {last_speed[tracker_id]:.1f} km/h",
                                 (point[0] - 50, point[1] - 40),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 165, 0), 2)  # สีส้ม
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 165, 0), 2)
 
         # แสดง frame info overlay (ถ้าเปิด debug)
         if SHOW_FRAME_INFO:

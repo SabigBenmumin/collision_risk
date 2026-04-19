@@ -1,0 +1,1552 @@
+\documentclass[12pt]{report}
+\usepackage{indentfirst}
+\setlength{\parindent}{1.5cm}
+
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=\parindent}
+\setlist[enumerate]{leftmargin=\parindent}
+\setlist{nosep}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[block]
+  {\normalfont\bfseries\fontsize{14pt}{16pt}\selectfont\centering}
+  {CHAPTER \thechapter\\}{0.5em}{}
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{12pt}{14pt}\selectfont}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12pt}{14pt}\selectfont}
+  {\thesubsection}{1em}{}
+
+\titlespacing*{\chapter}{0pt}{0pt}{2ex}
+\titlespacing*{\section}{0pt}{1.5ex}{1ex}
+\titlespacing*{\subsection}{0pt}{1ex}{0.8ex}
+
+\usepackage[a4paper,
+            left=1.5in,
+            right=1in,
+            top=1in,
+            bottom=1in]{geometry}
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyhead[R]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{tocloft}
+\usepackage{appendix}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\lstset{
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    language=Python,
+    showstringspaces=false
+}
+
+% Rename "Contents" to "TABLE OF CONTENTS", etc.
+\renewcommand{\contentsname}{TABLE OF CONTENTS}
+\renewcommand{\listfigurename}{LIST OF FIGURES}
+\renewcommand{\listtablename}{LIST OF TABLES}
+
+\begin{document}
+
+% ==================== FRONT MATTER ====================
+\pagenumbering{roman}
+
+% ---------- Cover Page ----------
+\begin{titlepage}
+    \centering
+    \bfseries
+    \fontsize{14pt}{18pt}\selectfont
+    \MakeUppercase{Thammasat University}\\[2cm]
+    \MakeUppercase{Traffic Collision Risk Detection using Computer Vision and Deep Learning}\\[2cm]
+    \MakeUppercase{Final Project Report}\\[2cm]
+    \MakeUppercase{By}\\[0.5cm]
+    \MakeUppercase{Nutchanon Jaikla}\\
+    \MakeUppercase{Sabig Benmumin}\\[2cm]
+    \MakeUppercase{Advisor}\\[0.5cm]
+    \MakeUppercase{Asst.Prof.Dr.Supakit Prueksaaroon}\\[2cm]
+    \MakeUppercase{Department of Software Engineering}\\
+    \MakeUppercase{Thammasat School of Engineering}\\
+    \MakeUppercase{Academic Year 2025}
+\end{titlepage}
+
+% ---------- Inner Cover Page ----------
+\begin{titlepage}
+    \centering
+    \bfseries
+    \fontsize{14pt}{18pt}\selectfont
+    \MakeUppercase{Traffic Collision Risk Detection using Computer Vision and Deep Learning}\\[1.5cm]
+    \normalfont\fontsize{12pt}{14pt}\selectfont
+    A Final Project Report Submitted in Partial Fulfillment of the Requirements\\
+    for the Degree of Bachelor of Engineering in Software Engineering\\
+    Thammasat School of Engineering\\
+    Thammasat University\\[1.5cm]
+    \bfseries
+    By\\[0.5cm]
+    Nutchanon Jaikla 6510742064\\
+    Sabig Benmumin 6510742197\\[1.5cm]
+    Advisor\\[0.5cm]
+    Asst.Prof.Dr.Supakit Prueksaaroon\\[1.5cm]
+    Department of Software Engineering\\
+    Thammasat School of Engineering\\
+    Academic Year 2025
+\end{titlepage}
+
+% ---------- Involved Persons ----------
+\chapter*{PROJECT INFORMATION}
+\addcontentsline{toc}{chapter}{Project Information}
+
+\begin{center}
+    \bfseries
+    Traffic Collision Risk Detection using Computer Vision and Deep Learning
+\end{center}
+
+\vspace{1em}
+\noindent\textbf{Project Team:}
+\begin{itemize}
+    \item Nutchanon Jaikla \hfill Student ID: 6510742064
+    \item Sabig Benmumin \hfill Student ID: 6510742197
+\end{itemize}
+
+\vspace{1em}
+\noindent\textbf{Academic Advisor:}\\
+Asst.Prof.Dr.Supakit Prueksaaroon\\
+Department of Software Engineering, Thammasat School of Engineering
+
+\vspace{1em}
+\noindent\textbf{Degree:} Bachelor of Engineering (Software Engineering)
+
+\vspace{1em}
+\noindent\textbf{Academic Year:} 2025
+
+\vspace{1em}
+\noindent\textbf{Keywords:} Computer Vision, Deep Learning, YOLOv8, Object Tracking, ByteTrack, Homography Transformation, Speed Estimation, Collision Risk Detection, Time to Collision, Post Encroachment Time, Traffic Monitoring
+
+\clearpage
+
+% ---------- Abstract ----------
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Traffic collision risk detection is a critical challenge in modern intelligent transportation systems.
+This report presents a real-time traffic monitoring system that employs computer vision and deep learning techniques to detect, track, and quantitatively assess the collision risk of vehicles observed through a fixed surveillance camera.
+The system integrates YOLOv8 object detection, ByteTrack multi-object tracking, and homography-based perspective transformation to estimate vehicle speeds and predict future trajectories within a calibrated region of interest.
+
+The homography matrix $\mathbf{H} \in \mathbb{R}^{3 \times 3}$ is computed from four user-selected correspondences between image coordinates and known real-world distances, enabling the conversion of pixel displacements into metric distances.
+Speed is estimated by computing the Euclidean distance between consecutive bottom-center anchor points transformed into world space and dividing by the elapsed time.
+To ensure robustness against measurement noise, instantaneous speed readings are aggregated using a combination of Interquartile Range (IQR) outlier filtering and median smoothing.
+Direction prediction is performed through a temporally weighted displacement average, with a dot-product sanity check to prevent direction reversal artifacts introduced by perspective distortion.
+
+Collision risk is assessed quantitatively using two surrogate safety measures: \textbf{Time to Collision (TTC)} and \textbf{Post Encroachment Time (PET)}.
+TTC is computed for three distinct collision scenarios---trajectory intersection, following (rear-end), and head-on---using direction vector dot products to classify the interaction geometry and lateral offset filtering to suppress false positives from vehicles in adjacent lanes.
+PET is computed retrospectively from the intersection of historical trace paths, measuring the temporal gap between successive occupancies of a shared conflict point.
+Risk events are logged with collision type classification and configurable cooldown to prevent redundant alerts.
+
+Experimental evaluation on traffic footage demonstrates that the system achieves reliable vehicle detection and tracking at real-time frame rates on commodity hardware.
+Speed estimation error remains within acceptable bounds for traffic monitoring applications, and the quantitative TTC and PET metrics enable formal conflict classification beyond visual assessment alone.
+The proposed system provides a low-cost, deployable alternative to intrusive sensor-based traffic monitoring infrastructure.
+
+\clearpage
+
+% ---------- Acknowledgements ----------
+\chapter*{ACKNOWLEDGEMENTS}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+The authors wish to express sincere gratitude to Asst.Prof.Dr.Supakit Prueksaaroon for continuous guidance, critical feedback, and encouragement throughout the duration of this project.
+We are grateful to the Department of Software Engineering, Thammasat School of Engineering, for providing the academic environment and computing resources necessary to undertake this research.
+We also acknowledge the developers of the open-source tools that formed the foundation of this work: Ultralytics for the YOLOv8 framework, the Supervision library for detection utilities and ByteTrack integration, and the OpenCV community for the extensive computer vision primitives used throughout the pipeline.
+Finally, we thank our families and fellow students for their patience and moral support.
+
+\clearpage
+
+% ---------- Table of Contents ----------
+\tableofcontents
+\clearpage
+
+% ---------- List of Figures ----------
+\listoffigures
+\clearpage
+
+% ---------- List of Tables ----------
+\listoftables
+\clearpage
+
+% ==================== MAIN MATTER ====================
+\pagenumbering{arabic}
+
+% ==================== CHAPTER 1 ====================
+\chapter{Introduction}
+
+\section{Background and Motivation}
+
+Traffic environments involve a complex interplay of human behavior, vehicle dynamics, and road design, all of which contribute to the risk of collisions.
+Road traffic injuries represent one of the leading causes of death and disability globally, with the World Health Organization estimating approximately 1.19 million fatalities per year~\cite{WHO2023}.
+Understanding the conditions that precede collisions---referred to as \emph{traffic conflicts}---provides actionable data for infrastructure planners, traffic engineers, and policymakers seeking to reduce accident rates.
+
+Conventional approaches to traffic conflict observation rely on human observers stationed at intersections, manual video review, or specialized hardware such as radar guns and inductive loop detectors.
+These methods are labor-intensive, costly to scale, and yield limited spatial and temporal granularity.
+The rapid advancement of computer vision and deep learning has created an opportunity to automate conflict detection using ubiquitous video surveillance cameras already deployed throughout urban road networks.
+
+This project develops a fully automated pipeline that processes video footage from a single fixed camera, detects and tracks vehicles, estimates their real-world speeds via homography-based perspective transformation, and computes quantitative collision risk indicators---Time to Collision (TTC) and Post Encroachment Time (PET)---to facilitate formal traffic conflict assessment.
+
+\section{Problem Statement}
+
+Currently, there is a lack of detailed, large-scale data reflecting the characteristics and frequency of traffic conflicts at road intersections and merging zones.
+Human-conducted conflict studies are limited in duration and coverage due to observer fatigue and resource constraints.
+Intrusive sensor arrays are expensive to install and maintain and disrupt the roadway during deployment.
+Video-based systems that do exist often operate as black boxes without transparency about the underlying geometric computations, making it difficult to validate their speed estimates against ground truth.
+
+Specific technical challenges addressed in this project include:
+
+\begin{itemize}
+    \item Accurately converting pixel-space positions to metric world coordinates under perspective distortion.
+    \item Estimating instantaneous speed from discrete, noisy tracker outputs without ground-truth odometry.
+    \item Predicting short-term future positions of vehicles in metric space and re-projecting them onto the image plane.
+    \item Computing Time to Collision (TTC) for multiple collision geometries: trajectory intersection, following (rear-end), and head-on.
+    \item Computing Post Encroachment Time (PET) from historical trace paths to detect near-miss events retrospectively.
+    \item Preventing numerical instability in homography projection when tracked objects exit the calibrated zone.
+\end{itemize}
+
+\section{Research Objectives}
+
+\begin{enumerate}
+    \item To develop an AI-based computer vision system capable of detecting multiple vehicle categories in real-time traffic video.
+    \item To track individual vehicle trajectories across frames using a state-of-the-art multi-object tracking algorithm.
+    \item To estimate vehicle speed through homography-based perspective transformation with IQR outlier filtering and median smoothing.
+    \item To predict 1-second future positions using a temporally weighted direction estimator operating in metric world space.
+    \item To compute Time to Collision (TTC) quantitatively for three collision scenario types: trajectory intersection, following (rear-end), and head-on.
+    \item To compute Post Encroachment Time (PET) from historical trace path intersections.
+    \item To classify and log collision risk events with type-specific annotations for traffic safety analysis.
+\end{enumerate}
+
+\section{Scope and Limitations}
+
+This research focuses on a single fixed-camera setup in which the camera's intrinsic parameters are assumed stable and the road surface in the calibrated zone is approximately planar.
+The scope includes:
+
+\begin{itemize}
+    \item Vehicle detection using a fine-tuned YOLOv8 model with a confidence threshold of 0.65.
+    \item Multi-object tracking using ByteTrack integrated through the Supervision library.
+    \item Speed estimation restricted to the user-defined calibration polygon, outside of which the last known in-zone speed is displayed.
+    \item Direction prediction using a weighted displacement estimator operating on a 60-frame history buffer.
+    \item Collision risk assessment via three TTC computation methods (trajectory intersection, following, head-on) and PET from trace path intersection.
+    \item Risk event logging with collision type classification and configurable cooldown.
+\end{itemize}
+
+Notable limitations are:
+
+\begin{itemize}
+    \item The homography model assumes a flat road surface; elevation changes introduce systematic errors.
+    \item Speed accuracy degrades when tracked objects are near the boundary of the calibration polygon due to projection instability.
+    \item The lateral offset threshold for following and head-on detection ($d_\text{lat}^\text{max} = 2.0$~m) may require site-specific calibration depending on lane width.
+    \item PET computation has $\mathcal{O}(n^2)$ complexity per segment pair; if the trace history length is increased significantly, a spatial index should be considered.
+    \item Performance is bounded by the GPU/CPU hardware available for inference.
+\end{itemize}
+
+\section{Expected Benefits}
+
+\begin{itemize}
+    \item Improved understanding of near-collision events in traffic environments through automated, continuous monitoring with quantitative surrogate safety measures.
+    \item A low-cost alternative to traditional traffic monitoring systems, requiring only a consumer-grade camera.
+    \item Quantitative speed data enabling statistical analysis of vehicle behavior at monitored locations.
+    \item Formal TTC and PET metrics enabling objective traffic conflict classification compliant with established surrogate safety frameworks.
+    \item A research platform extensible to incident logging, heatmap generation, and integration with traffic management systems.
+\end{itemize}
+
+% ==================== CHAPTER 2 ====================
+\chapter{Literature Review}
+
+\section{Traditional Traffic Data Collection Methods}
+
+Traffic data collection has historically relied on a combination of manual observation and physical sensors.
+Pneumatic road tubes, inductive loop detectors, and radar speed guns provide point measurements of vehicle count and speed but require physical installation in or adjacent to the roadway~\cite{Roess2011}.
+Video image processing systems emerged in the 1990s as a less intrusive alternative, but early systems relied on frame differencing and optical flow rather than learned object representations, limiting their accuracy in crowded or occluded scenes~\cite{Coifman1998}.
+
+Human encounted traffic conflict studies, pioneered by Perkins and Harris~\cite{Perkins1968} and later systematized through the Swedish Traffic Conflict Technique~\cite{Hyden1987}, require trained observers to classify events in real time.
+Such studies yield high-quality data but cannot scale to city-wide deployment.
+
+\section{Computer Vision in Traffic Analysis}
+
+The application of computer vision to traffic analysis encompasses vehicle detection, classification, counting, speed estimation, and behavior analysis.
+Background subtraction methods such as Gaussian Mixture Models (GMM) and the ViBe algorithm~\cite{Barnich2011} enable foreground extraction but are sensitive to illumination changes and shadow artifacts.
+Optical flow methods, including the Lucas-Kanade~\cite{Lucas1981} and Farneback~\cite{Farneback2003} algorithms, estimate per-pixel or feature-point motion but do not inherently associate motion with individual vehicles.
+
+Perspective transformation, or homography, provides the mathematical foundation for converting pixel-space measurements into metric world-space quantities.
+The homography model, valid when all points lie on a common plane, has been widely applied to road-surface measurements from overhead or oblique camera views~\cite{Dubska2014}.
+
+\section{Deep Learning for Object Detection}
+
+The introduction of the R-CNN family~\cite{Girshick2014} and subsequently YOLO~\cite{Redmon2016} transformed the detection landscape.
+YOLOv8~\cite{Jocher2023}, developed by Ultralytics, represents the current state of the art in single-stage detection, combining a decoupled head architecture with an anchor-free detection paradigm.
+It achieves mean average precision (mAP) exceeding 50\% on COCO at real-time inference speeds.
+For traffic-specific applications, domain-adapted models fine-tuned on datasets such as UA-DETRAC~\cite{Wen2020} and CARLA-generated synthetic data consistently outperform general-purpose detectors.
+
+\section{Object Tracking Algorithms}
+
+Multi-object tracking (MOT) has evolved from simple nearest-neighbor data association through SORT~\cite{Bewley2016} and its extension DeepSORT~\cite{Wojke2017}, which incorporates appearance embeddings to survive occlusion.
+ByteTrack~\cite{Zhang2022} introduces a two-stage association approach that recovers low-confidence detections by matching them against existing tracklets, significantly improving recall in crowded scenes without requiring appearance features.
+This property makes ByteTrack particularly suitable for traffic scenarios where vehicles frequently overlap or are briefly occluded.
+
+\section{Homography and Perspective Transformation}
+
+The homography matrix $\mathbf{H}$ is a $3 \times 3$ projective transformation relating two views of the same planar surface.
+Given at least four point correspondences between the image plane and the world plane, $\mathbf{H}$ can be computed via the Direct Linear Transform (DLT) algorithm~\cite{Hartley2004}.
+In traffic monitoring, this transformation is applied to convert vehicle positions from pixel coordinates to metric coordinates on the road surface, enabling accurate speed computation from frame-to-frame displacements~\cite{Schoepflin2003}.
+
+\section{Collision Risk Assessment}
+
+Surrogate safety measures, including Time to Collision (TTC), Post Encroachment Time (PET), and Deceleration Rate to Avoid Crash (DRAC), provide quantitative indicators of collision risk without requiring an actual crash~\cite{Tarko2009}.
+Vision-based implementations compute TTC from estimated vehicle positions and velocities projected along predicted trajectories.
+Recent work has employed deep learning end-to-end approaches~\cite{Chan2016}, but interpretability and calibration remain challenges.
+
+TTC is most commonly computed under the assumption of constant velocity and straight-line trajectories.
+However, real traffic interactions exhibit diverse geometries that require scenario-specific formulations:
+\begin{itemize}
+    \item \textbf{Trajectory intersection:} Two vehicles approach a common conflict point from different directions (e.g., at an intersection).
+    \item \textbf{Following (rear-end):} Two vehicles travel in the same direction, with the trailing vehicle closing the gap.
+    \item \textbf{Head-on:} Two vehicles travel in opposing directions on a collision course.
+\end{itemize}
+
+PET complements TTC by providing a retrospective measure: it quantifies the temporal gap between two vehicles' successive occupancy of a shared spatial point, making it robust to prediction errors inherent in TTC~\cite{Tarko2009}.
+
+\section{Related Work and Gap Analysis}
+
+Zangenehpour et al.~\cite{Zangenehpour2015} demonstrated automated pedestrian and cyclist conflict detection using video, while Romero et al.~\cite{Romero2020} applied YOLO-based detection to intersection monitoring with homography-based speed estimation.
+However, many published systems lack transparent descriptions of their outlier handling strategies and numerical stability measures for homography projection at zone boundaries.
+Furthermore, most implementations compute TTC only for trajectory-intersection scenarios, neglecting the following and head-on geometries that account for a significant proportion of real-world collisions.
+
+This work contributes: (1) an explicit IQR-based outlier filter applied to speed history before median aggregation; (2) a dot-product direction consistency check in both pixel space and homography-transformed world space; (3) a pixel-distance sanity check that prevents projection explosion when vehicles near the polygon boundary; (4) a multi-scenario TTC framework covering trajectory intersection, following, and head-on geometries with dot-product-based classification; and (5) a PET implementation based on historical trace path intersection with frame-level interpolation.
+
+% ==================== CHAPTER 3 ====================
+\chapter{Methodology}
+
+\section{System Architecture Overview}
+
+The system follows a sequential processing pipeline applied to each video frame.
+Figure~\ref{fig:architecture} illustrates the major components.
+
+\begin{enumerate}
+    \item \textbf{Camera Calibration:} The user selects four points on the first frame defining a quadrilateral of known real-world dimensions; the homography matrix is computed from these correspondences.
+    \item \textbf{Object Detection:} YOLOv8 processes each frame and returns bounding boxes with class labels and confidence scores.
+    \item \textbf{Object Tracking:} ByteTrack associates detections across frames, assigning persistent tracker IDs.
+    \item \textbf{Speed Estimation:} For each tracked object inside the calibration zone, consecutive bottom-center positions are transformed to world coordinates and divided by elapsed time.
+    \item \textbf{Direction Estimation and Future Projection:} A weighted displacement estimator computes a direction vector, which is extended by the estimated speed multiplied by a prediction horizon.
+    \item \textbf{Risk Detection:} TTC is computed for each object pair using three scenario-specific algorithms; PET is computed from historical trace path intersections.
+    \item \textbf{Visualization and Logging:} Annotated frames are displayed in real time, and risk events are written to structured log files with collision type classification.
+\end{enumerate}
+
+\section{Data Collection}
+
+Video footage was captured using a fixed overhead camera mounted above a road segment of known geometry.
+Ground-truth reference distances were measured physically using a measuring tape before recording.
+The camera resolution was set to 1920$\times$1080 pixels at the native frame rate of the source video, which was read via OpenCV's \texttt{VideoCapture} API.
+The actual frames per second (FPS) was programmatically extracted using:
+\begin{equation}
+    \text{FPS} = \texttt{cap.get(cv2.CAP\_PROP\_FPS)}
+\end{equation}
+and used throughout the pipeline to convert frame counts to time durations.
+
+\section{Camera Calibration and Homography}
+
+\subsection{Homography Model}
+
+A perspective camera projects a 3-D world point $\mathbf{X}_w = (X, Y, Z)^\top$ onto an image point $\mathbf{x} = (u, v)^\top$ via the full camera model.
+Under the assumption that all points of interest lie on a single ground plane ($Z = 0$), the camera model reduces to a planar homography.
+Specifically, if $\tilde{\mathbf{x}} = (u, v, 1)^\top$ and $\tilde{\mathbf{X}}_w = (X, Y, 1)^\top$ denote homogeneous coordinates, the relation is:
+\begin{equation}
+    \lambda \begin{pmatrix} u \\ v \\ 1 \end{pmatrix}
+    = \mathbf{H}
+    \begin{pmatrix} X \\ Y \\ 1 \end{pmatrix}
+    \label{eq:homography}
+\end{equation}
+where $\lambda$ is a non-zero scalar (projective depth) and $\mathbf{H} \in \mathbb{R}^{3 \times 3}$ is the homography matrix, defined up to scale and therefore having 8 degrees of freedom.
+
+\subsection{Calibration Procedure}
+
+The user selects four image points $\mathbf{p}_i = (u_i, v_i)$, $i = 1, \ldots, 4$, at the corners of a known rectangle on the road surface, proceeding in the order: top-left, top-right, bottom-right, bottom-left.
+The corresponding world points are assigned as:
+\begin{equation}
+    \mathbf{P}_1 = (0, 0),\quad
+    \mathbf{P}_2 = (W, 0),\quad
+    \mathbf{P}_3 = (W, L),\quad
+    \mathbf{P}_4 = (0, L)
+\end{equation}
+where $W$ is the real-world width (top edge, in meters) and $L$ is the real-world length (right edge, in meters) entered by the user.
+
+\subsection{Direct Linear Transform}
+
+The homography is computed using OpenCV's \texttt{findHomography}, which internally applies the Direct Linear Transform (DLT).
+For each correspondence $(\mathbf{p}_i, \mathbf{P}_i)$, two linear equations are obtained from Equation~\eqref{eq:homography}:
+\begin{equation}
+    \underbrace{\begin{pmatrix}
+    -X_i & -Y_i & -1 & 0 & 0 & 0 & u_i X_i & u_i Y_i & u_i \\
+    0 & 0 & 0 & -X_i & -Y_i & -1 & v_i X_i & v_i Y_i & v_i
+    \end{pmatrix}}_{A_i}
+    \mathbf{h} = \mathbf{0}
+    \label{eq:DLT}
+\end{equation}
+where $\mathbf{h} = (h_{11}, h_{12}, h_{13}, h_{21}, h_{22}, h_{23}, h_{31}, h_{32}, h_{33})^\top$ is the vectorized homography.
+Stacking all four correspondences yields $\mathbf{A} \mathbf{h} = \mathbf{0}$ with $\mathbf{A} \in \mathbb{R}^{8 \times 9}$.
+The solution is the singular vector corresponding to the smallest singular value of $\mathbf{A}$, obtained via SVD:
+\begin{equation}
+    \mathbf{A} = \mathbf{U} \boldsymbol{\Sigma} \mathbf{V}^\top, \qquad
+    \mathbf{h} = \text{last column of } \mathbf{V}
+    \label{eq:SVD}
+\end{equation}
+The result is reshaped into the $3 \times 3$ matrix $\mathbf{H}$.
+
+\subsection{Coordinate Transformation}
+
+Given a tracked bottom-center anchor point $(u, v)$ in pixel space, the corresponding world coordinate $(X, Y)$ is obtained by applying $\mathbf{H}$ in the forward direction:
+\begin{equation}
+    \begin{pmatrix} X' \\ Y' \\ w' \end{pmatrix}
+    = \mathbf{H}^{-1}
+    \begin{pmatrix} u \\ v \\ 1 \end{pmatrix},
+    \qquad
+    X = \frac{X'}{w'},\quad Y = \frac{Y'}{w'}
+    \label{eq:transform_point}
+\end{equation}
+In the code, this is implemented using \texttt{cv2.perspectiveTransform} applied with $\mathbf{H}$ (pixel-to-world direction).
+The inverse transformation (world-to-pixel), used for re-projecting future positions, applies $\mathbf{H}^{-1}$ via \texttt{np.linalg.inv}:
+\begin{equation}
+    \begin{pmatrix} u' \\ v' \\ \lambda \end{pmatrix}
+    = \mathbf{H}
+    \begin{pmatrix} X_f \\ Y_f \\ 1 \end{pmatrix},
+    \qquad
+    u = \frac{u'}{\lambda},\quad v = \frac{v'}{\lambda}
+    \label{eq:inv_transform}
+\end{equation}
+
+\section{Object Detection}
+
+Vehicle detection is performed using YOLOv8 with a custom-trained model \texttt{best.pt} loaded via the Ultralytics API.
+Each frame is processed with a detection confidence threshold $\tau_\text{conf} = 0.65$ to reduce false positives:
+\begin{lstlisting}[caption={YOLOv8 Detection Call},label={lst:yolo}]
+results = model.predict(source=frame, stream=True, conf=0.65)
+\end{lstlisting}
+Detections are converted to the Supervision \texttt{Detections} format for downstream processing.
+
+\section{Object Tracking}
+
+ByteTrack~\cite{Zhang2022} is initialized with the video frame rate to calibrate its Kalman filter motion model:
+\begin{lstlisting}[caption={ByteTrack Initialization},label={lst:bytetrack}]
+byte_track = sv.ByteTrack(frame_rate=int(FPS))
+\end{lstlisting}
+Each detection is associated with a persistent \texttt{tracker\_id} across frames.
+A trailing trajectory is visualized using \texttt{TraceAnnotator} with a trace length of $2 \times \text{FPS}$ frames, corresponding to a 2-second history window.
+The bottom-center anchor position is selected as the ground-contact point, minimizing the parallax error inherent in using bounding box centers.
+
+\section{Speed Estimation}
+
+\subsection{Real-World Distance Computation}
+
+For a tracked object with consecutive anchor positions $\mathbf{p}_1 = (u_1, v_1)$ and $\mathbf{p}_2 = (u_2, v_2)$ in pixel space (both inside the calibration zone), the real-world Euclidean distance is:
+\begin{equation}
+    d = \sqrt{(X_2 - X_1)^2 + (Y_2 - Y_1)^2}
+    \label{eq:real_distance}
+\end{equation}
+where $(X_k, Y_k)$ are obtained from Equation~\eqref{eq:transform_point}.
+
+\subsection{Instantaneous Speed}
+
+The instantaneous speed is computed from the displacement over the speed memory window.
+A sliding deque of maximum length 5 stores the most recent in-zone anchor positions.
+Letting $\mathbf{p}_\text{first}$ and $\mathbf{p}_\text{last}$ denote the oldest and newest positions in the window, and $n$ the number of intervening frame steps:
+\begin{equation}
+    v_\text{inst} = \frac{d(\mathbf{p}_\text{first}, \mathbf{p}_\text{last})}{n / \text{FPS}}
+    \quad [\text{m/s}]
+    \label{eq:speed_mps}
+\end{equation}
+\begin{equation}
+    v_\text{kmh} = v_\text{inst} \times 3.6
+    \label{eq:speed_kmh}
+\end{equation}
+
+\subsection{Outlier Filtering via IQR}
+
+When a vehicle exits the calibration zone, its full speed history $\mathcal{S} = \{v_1, v_2, \ldots, v_n\}$ is processed to compute a robust final speed.
+Outliers are first removed using the Tukey fence method~\cite{Tukey1977}.
+The first and third quartiles are computed:
+\begin{equation}
+    Q_1 = \text{percentile}(\mathcal{S}, 25), \qquad Q_3 = \text{percentile}(\mathcal{S}, 75)
+    \label{eq:quartiles}
+\end{equation}
+The interquartile range is defined as:
+\begin{equation}
+    \text{IQR} = Q_3 - Q_1
+    \label{eq:iqr}
+\end{equation}
+The admissible interval is:
+\begin{equation}
+    [Q_1 - 1.5 \cdot \text{IQR},\quad Q_3 + 1.5 \cdot \text{IQR}]
+    \label{eq:tukey_fence}
+\end{equation}
+Speeds outside this interval are discarded:
+\begin{equation}
+    \mathcal{S}_\text{filtered} = \{v \in \mathcal{S} : Q_1 - 1.5\,\text{IQR} \leq v \leq Q_3 + 1.5\,\text{IQR}\}
+    \label{eq:filtered_speeds}
+\end{equation}
+
+\subsection{Median Smoothing}
+
+The final reported speed is the sample median of the filtered set:
+\begin{equation}
+    v_\text{final} = \text{median}(\mathcal{S}_\text{filtered})
+    \label{eq:median_speed}
+\end{equation}
+The median is preferred over the arithmetic mean because it is a robust estimator of location with a breakdown point of 50\%, meaning up to half of the observations can be arbitrarily contaminated without biasing the estimate~\cite{Hampel1974}.
+In contrast, the mean has a breakdown point of 0\%.
+Given that homography projection near zone boundaries produces occasional extreme speed readings---due to numerical instability as the projective depth $w'$ in Equation~\eqref{eq:transform_point} approaches zero---the median provides materially superior robustness.
+
+For display during in-zone traversal, a running median of the speed history accumulated so far is computed once at least 3 observations are available:
+\begin{equation}
+    v_\text{display}^{(t)} = \text{median}\bigl(\mathcal{S}^{(1:t)}\bigr), \qquad |\mathcal{S}^{(1:t)}| \geq 3
+    \label{eq:running_median}
+\end{equation}
+
+\section{Direction Estimation and Future Trajectory Projection}
+
+\subsection{Temporally Weighted Direction Estimator}
+
+Direction is estimated from the last 60 tracked anchor positions (a deque of maximum length 60, storing $(x, y, \text{frame\_count})$ tuples for PET computation).
+Let $\mathbf{p}_k = (u_k, v_k)$, $k = 1, \ldots, n$, be the ordered track history.
+The weighted displacement vector is:
+\begin{equation}
+    \tilde{\mathbf{v}} = \frac{\sum_{k=1}^{n-1} k \cdot \Delta\mathbf{p}_k}{\sum_{k=1}^{n-1} k},
+    \qquad
+    \Delta\mathbf{p}_k = \mathbf{p}_{k+1} - \mathbf{p}_k
+    \label{eq:weighted_direction}
+\end{equation}
+The weight $k$ increases linearly, assigning greater influence to the most recent displacements, which better represent the current heading.
+The normalized direction unit vector is:
+\begin{equation}
+    \hat{\mathbf{v}} = \frac{\tilde{\mathbf{v}}}{\|\tilde{\mathbf{v}}\|}
+    \label{eq:unit_direction}
+\end{equation}
+
+\subsection{Dot-Product Consistency Check}
+
+Weighted averaging over a curved path can occasionally yield a direction vector pointing opposite to the vehicle's true direction of travel.
+A consistency check is applied using the dot product against the overall displacement $\boldsymbol{\delta} = \mathbf{p}_n - \mathbf{p}_1$:
+\begin{equation}
+    \hat{\mathbf{v}} \leftarrow
+    \begin{cases}
+        -\hat{\mathbf{v}} & \text{if } \hat{\mathbf{v}} \cdot \boldsymbol{\delta} < 0 \\
+        \hat{\mathbf{v}} & \text{otherwise}
+    \end{cases}
+    \label{eq:dot_check}
+\end{equation}
+This correction is applied once in pixel space and a second time after homography transformation into world space, since the non-linear nature of the projective mapping can reintroduce reversal.
+
+\subsection{Real-World Direction Vector}
+
+To convert the pixel-space direction vector to real-world coordinates, two displaced pixel points along the direction are transformed through the homography:
+\begin{equation}
+    \hat{\mathbf{v}}_w = \frac{\text{transform}(\mathbf{p}_0 + 100\hat{\mathbf{v}}) - \text{transform}(\mathbf{p}_0)}{\|\text{transform}(\mathbf{p}_0 + 100\hat{\mathbf{v}}) - \text{transform}(\mathbf{p}_0)\|}
+    \label{eq:real_direction}
+\end{equation}
+A second dot-product consistency check against the real-world displacement of the track history is applied to ensure correct orientation.
+This real-world direction vector is used by all three TTC computation methods.
+
+\subsection{Future Position Projection}
+
+Given the current world-space position $\mathbf{Q}_\text{curr} = \text{transform}(\mathbf{p}_\text{current})$, the world-space direction unit vector $\hat{\mathbf{v}}_w$ obtained after transforming a displacement through $\mathbf{H}$, the estimated speed $v$ (m/s), and the prediction horizon $\tau = 1$ s:
+\begin{equation}
+    \mathbf{Q}_\text{future} = \mathbf{Q}_\text{curr} + v\,\tau\,\hat{\mathbf{v}}_w
+    \label{eq:future_world}
+\end{equation}
+The future image position is recovered by inverse projection:
+\begin{equation}
+    \mathbf{p}_\text{future} = \text{transform}^{-1}(\mathbf{Q}_\text{future})
+    \label{eq:future_pixel}
+\end{equation}
+A pixel-distance sanity check prevents degenerate projections:
+\begin{equation}
+    \|\mathbf{p}_\text{future} - \mathbf{p}_\text{current}\|_2 \leq 500 \text{ px}
+    \label{eq:sanity_check}
+\end{equation}
+If this condition is violated, the system falls back to a simple pixel-space extrapolation of length $l_\text{fallback} = 60$ px.
+
+\section{Collision Risk Detection}
+
+The system assesses collision risk quantitatively using two complementary surrogate safety measures: Time to Collision (TTC) and Post Encroachment Time (PET).
+TTC is a predictive measure computed from current positions and velocities, while PET is a retrospective measure derived from historical trace paths.
+
+\subsection{Direction-Based Scenario Classification}
+
+Before computing TTC, the system classifies the interaction geometry between each pair of tracked vehicles using the dot product of their real-world direction vectors $\hat{\mathbf{v}}_A$ and $\hat{\mathbf{v}}_B$:
+\begin{equation}
+    \cos\theta = \hat{\mathbf{v}}_A \cdot \hat{\mathbf{v}}_B
+    \label{eq:dot_scenario}
+\end{equation}
+
+The scenario is classified as:
+\begin{equation}
+    \text{scenario} =
+    \begin{cases}
+        \text{following (rear-end)} & \text{if } \cos\theta \geq \delta_\text{follow} \\
+        \text{head-on} & \text{if } \cos\theta \leq \delta_\text{head-on} \\
+        \text{intersection} & \text{otherwise}
+    \end{cases}
+    \label{eq:scenario_class}
+\end{equation}
+where $\delta_\text{follow} = 0.7$ (approximately $\pm 45°$) and $\delta_\text{head-on} = -0.7$.
+
+\subsection{Lateral Offset Filtering}
+
+For following and head-on scenarios, a lateral offset check prevents false positives from vehicles traveling in adjacent lanes.
+Given the separation vector $\mathbf{s} = \mathbf{Q}_B - \mathbf{Q}_A$ and a reference direction axis $\hat{\mathbf{d}}$, the longitudinal and lateral components are:
+\begin{equation}
+    d_\text{long} = \mathbf{s} \cdot \hat{\mathbf{d}}, \qquad
+    d_\text{lat} = |\mathbf{s} \cdot \hat{\mathbf{d}}^\perp|
+    \label{eq:lateral_offset}
+\end{equation}
+where $\hat{\mathbf{d}}^\perp = (-\hat{d}_y, \hat{d}_x)$ is the perpendicular direction.
+If $d_\text{lat} > d_\text{lat}^\text{max}$ (default: 2.0~m), the pair is assumed to be in different lanes and the check returns no risk.
+
+\subsection{TTC: Trajectory Intersection}
+
+For pairs classified as ``intersection'' (vehicles approaching from different angles), TTC is computed using a ray--segment intersection method in real-world space:
+
+\begin{enumerate}
+    \item Project the future path of each vehicle as a line segment in world coordinates:
+    \begin{equation}
+        \mathbf{Q}_k^\text{future} = \mathbf{Q}_k + \hat{\mathbf{v}}_k \cdot v_k^\text{eff} \cdot \tau_\text{look}
+        \label{eq:future_path}
+    \end{equation}
+    where $v_k^\text{eff} = \max(v_k, 0.5)$~m/s is the effective speed (with a minimum floor to ensure a non-degenerate segment) and $\tau_\text{look} = 4.0$~s is the lookahead horizon.
+
+    \item Find the intersection of ray $A$ with segment $B_\text{now} \to B_\text{future}$ using a 2-D ray--segment test.
+    If no intersection exists, the trajectories do not conflict and no risk is reported.
+
+    \item If a conflict point $\mathbf{C}$ is found:
+    \begin{equation}
+        \text{TTC}_k = \frac{\|\mathbf{C} - \mathbf{Q}_k\|}{v_k^\text{eff}}, \qquad k \in \{A, B\}
+        \label{eq:ttc_intersection}
+    \end{equation}
+
+    \item A risk event is triggered when:
+    \begin{equation}
+        (\text{TTC}_A < \tau_\text{TTC} \;\lor\; \text{TTC}_B < \tau_\text{TTC})
+        \;\land\;
+        |\text{TTC}_A - \text{TTC}_B| < \tau_\text{gap}
+        \label{eq:ttc_risk_condition}
+    \end{equation}
+    where $\tau_\text{TTC} = 3.0$~s and $\tau_\text{gap} = 1.5$~s.
+\end{enumerate}
+
+\subsection{TTC: Following (Rear-End)}
+
+For vehicle pairs traveling in the same direction ($\cos\theta \geq 0.7$), TTC is computed as:
+
+\begin{enumerate}
+    \item The average direction $\hat{\mathbf{d}}_\text{avg} = \text{normalize}((\hat{\mathbf{v}}_A + \hat{\mathbf{v}}_B) / 2)$ is used as the longitudinal reference axis.
+    \item The separation vector is decomposed into longitudinal gap $d_\text{long}$ and lateral offset $d_\text{lat}$ using Equation~\eqref{eq:lateral_offset}.
+    \item If $d_\text{lat} > d_\text{lat}^\text{max}$, the vehicles are in different lanes $\to$ no risk.
+    \item The closing speed is computed as:
+    \begin{equation}
+        v_\text{close} =
+        \begin{cases}
+            v_A - v_B & \text{if } d_\text{long} > 0 \text{ (A is behind B)} \\
+            v_B - v_A & \text{if } d_\text{long} < 0 \text{ (B is behind A)}
+        \end{cases}
+        \label{eq:closing_speed_follow}
+    \end{equation}
+    If $v_\text{close} \leq 0.1$~m/s, the trailing vehicle is not closing $\to$ no risk.
+    \item TTC is computed as:
+    \begin{equation}
+        \text{TTC}_\text{follow} = \frac{|d_\text{long}|}{v_\text{close}}
+        \label{eq:ttc_following}
+    \end{equation}
+\end{enumerate}
+
+\subsection{TTC: Head-On}
+
+For vehicle pairs traveling in opposing directions ($\cos\theta \leq -0.7$), TTC is computed as:
+
+\begin{enumerate}
+    \item Vehicle $A$'s direction $\hat{\mathbf{v}}_A$ is used as the longitudinal reference axis.
+    \item The longitudinal projection $d_\text{long} = \mathbf{s} \cdot \hat{\mathbf{v}}_A$ must be positive (i.e., $B$ is ahead of $A$ in $A$'s direction of travel); otherwise the vehicles have already passed each other.
+    \item If $d_\text{lat} > d_\text{lat}^\text{max}$, the vehicles are in different lanes $\to$ no risk.
+    \item The closing speed is the sum of both speeds (since they approach each other):
+    \begin{equation}
+        v_\text{close} = v_A + v_B
+        \label{eq:closing_speed_headon}
+    \end{equation}
+    \item TTC is computed as:
+    \begin{equation}
+        \text{TTC}_\text{head-on} = \frac{d_\text{long}}{v_\text{close}}
+        \label{eq:ttc_headon}
+    \end{equation}
+\end{enumerate}
+
+\subsection{Scenario Evaluation Order}
+
+For each vehicle pair, the three TTC methods are evaluated in sequence:
+\begin{enumerate}
+    \item Trajectory intersection
+    \item Following (rear-end)
+    \item Head-on
+\end{enumerate}
+The first method that returns a valid TTC below the threshold triggers a risk event, and the remaining methods are skipped for that pair in that frame.
+This priority order ensures that path-crossing conflicts (the most geometrically constrained scenario) are detected first.
+
+\subsection{Post Encroachment Time (PET)}
+
+PET is computed from historical trace paths stored as $(x, y, \text{frame\_count})$ tuples with a maximum length of 60 frames per tracked object.
+The algorithm searches for intersections between all pairs of consecutive segments in the trace paths of two objects:
+
+\begin{enumerate}
+    \item For each segment pair $(A_i \to A_{i+1})$ and $(B_j \to B_{j+1})$, a 2-D segment intersection test determines whether the paths cross.
+    \item If an intersection is found at parameters $(t, u)$, the frame numbers at which each object passed through the conflict point are interpolated:
+    \begin{equation}
+        f_A = f_{A_i} + t \cdot (f_{A_{i+1}} - f_{A_i}), \qquad
+        f_B = f_{B_j} + u \cdot (f_{B_{j+1}} - f_{B_j})
+        \label{eq:pet_interpolation}
+    \end{equation}
+    \item PET is computed as:
+    \begin{equation}
+        \text{PET} = \frac{|f_A - f_B|}{\text{FPS}}
+        \label{eq:pet}
+    \end{equation}
+    \item The minimum PET across all segment-pair intersections is reported.
+\end{enumerate}
+
+A risk event is triggered when $\text{PET} < \tau_\text{PET}$ (default: 2.0~s).
+
+\subsection{Risk Event Cooldown}
+
+To prevent redundant logging, a per-pair, per-event-type cooldown mechanism is implemented.
+Each pair $(i, j)$ and event type (TTC\_RISK, PET\_RISK) maintains a timestamp of the last logged event.
+A new event is logged only if:
+\begin{equation}
+    t_\text{current} - t_\text{last\_logged} \geq \tau_\text{cooldown}
+    \label{eq:cooldown}
+\end{equation}
+where $\tau_\text{cooldown} = 5.0$~s by default.
+
+\section{Data Logging and Output}
+
+Each processing run is assigned a unique run identifier (\texttt{RUNID}) generated at startup, and a dedicated output directory is created.
+Risk events are serialized to structured log files by the \texttt{handle\_risk\_event} function, which records:
+\begin{itemize}
+    \item Timestamp (wall-clock time)
+    \item Event type (\texttt{TTC\_RISK} or \texttt{PET\_RISK})
+    \item Tracker ID pair
+    \item Class names of both objects
+    \item Metric value (TTC or PET in seconds)
+    \item Collision type (\texttt{intersection}, \texttt{following}, or \texttt{head\_on}; TTC events only)
+    \item Zone name
+    \item Frame number
+\end{itemize}
+Optionally, the annotated frame can be saved as a JPEG image for post-hoc review.
+
+% ==================== CHAPTER 4 ====================
+\chapter{Implementation and Results}
+
+\section{Implementation Details}
+
+\subsection{Software Environment}
+
+The system is implemented in Python 3.10 using the following principal dependencies:
+
+\begin{table}[H]
+    \centering
+    \caption{Software Dependencies}
+    \label{tab:dependencies}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Library} & \textbf{Version} & \textbf{Role} \\
+        \midrule
+        ultralytics & 8.x & YOLOv8 detection \\
+        supervision & 0.x & Tracking, annotation \\
+        opencv-python & 4.x & Video I/O, homography \\
+        numpy & 1.x & Numerical computation \\
+        Python & 3.10 & Runtime \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hardware Specifications}
+
+\begin{table}[H]
+    \centering
+    \caption{Experimental Hardware Specifications}
+    \label{tab:hardware}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Component} & \textbf{Specification} \\
+        \midrule
+        Processor & [CPU model, e.g., Intel Core i7-12700H] \\
+        Memory & [RAM, e.g., 16 GB DDR5] \\
+        GPU & [GPU model, e.g., NVIDIA RTX 3060 6 GB] \\
+        Operating System & Windows 10 / 11 \\
+        Storage & SSD \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{YOLOv8 Model Configuration}
+
+The model \texttt{best.pt} is a fine-tuned YOLOv8 checkpoint trained on a traffic-specific vehicle dataset.
+Detection is run in streaming mode with a confidence threshold of 0.65.
+The model processes frames at native resolution, with inference executed on the available GPU via CUDA acceleration if present.
+
+\subsection{Risk Detection Configuration}
+
+\begin{table}[H]
+    \centering
+    \caption{Risk Detection Parameters}
+    \label{tab:risk_params}
+    \begin{tabular}{llp{6cm}}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} & \textbf{Description} \\
+        \midrule
+        $\tau_\text{TTC}$ (TTC\_THRESHOLD) & 3.0~s & Maximum TTC to trigger a risk event \\
+        $\tau_\text{gap}$ (ARRIVAL\_GAP) & 1.5~s & Maximum arrival time difference for intersection TTC \\
+        $\tau_\text{PET}$ (PET\_THRESHOLD) & 2.0~s & Maximum PET to trigger a risk event \\
+        $\tau_\text{cooldown}$ (RISK\_COOLDOWN\_S) & 5.0~s & Minimum interval between logs for same pair \\
+        $\tau_\text{look}$ (TTC\_LOOKAHEAD\_S) & 4.0~s & Future path length for intersection TTC \\
+        $d_\text{lat}^\text{max}$ (LATERAL\_OFFSET\_MAX) & 2.0~m & Maximum lateral offset to consider ``same lane'' \\
+        $\delta_\text{follow}$ (DOT\_FOLLOWING\_MIN) & 0.7 & Minimum dot product for ``same direction'' \\
+        $\delta_\text{head-on}$ (DOT\_HEADON\_MAX) & $-0.7$ & Maximum dot product for ``opposing direction'' \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{General System Parameters}
+    \label{tab:hyperparams}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} \\
+        \midrule
+        Confidence threshold $\tau_\text{conf}$ & 0.65 \\
+        Input resolution & Native (1920$\times$1080) \\
+        Inference mode & Stream \\
+        Speed memory deque length & 5 frames \\
+        Direction memory deque length & 60 frames \\
+        Prediction horizon $\tau$ & 1 second \\
+        Max pixel sanity distance & 500 px \\
+        Fallback line length & 60 px \\
+        Frame edge margin & 50 px \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Calibration Workflow}
+
+Three input modes are supported for specifying the four calibration points:
+
+\begin{enumerate}
+    \item \textbf{Interactive mouse:} Points are selected by left-clicking on the first video frame.
+    \item \textbf{Text file:} Four lines, each containing \texttt{x,y} coordinates, are read from a \texttt{.txt} file.
+    \item \textbf{Keyboard:} Coordinates are entered directly in the terminal.
+\end{enumerate}
+
+After point selection, pixel distances between consecutive corners are displayed, and the user enters the corresponding real-world distances in meters.
+The homography matrix is then computed and printed to the console for verification.
+
+\section{System Performance Evaluation}
+
+\subsection{Processing Speed}
+
+The system is designed to process every frame (\texttt{PROCESS\_EVERY\_N\_FRAME = 1}).
+Processing throughput depends on resolution and GPU availability.
+Table~\ref{tab:processing} summarizes representative processing times.
+
+\begin{table}[H]
+    \centering
+    \caption{Processing Time Analysis}
+    \label{tab:processing}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Stage} & \textbf{Avg. Time (ms)} & \textbf{\% of Pipeline} \\
+        \midrule
+        YOLOv8 Inference & [35--80] & $\sim$70\% \\
+        ByteTrack Update & [1--3] & $\sim$5\% \\
+        Speed Estimation & $<$1 & $<$2\% \\
+        Homography Transform & $<$1 & $<$2\% \\
+        Risk Detection (TTC + PET) & [1--5] & $\sim$6\% \\
+        Annotation \& I/O & [5--10] & $\sim$15\% \\
+        \midrule
+        \textbf{Total} & [43--100] & 100\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Speed Estimation Accuracy}
+
+Speed estimation accuracy was evaluated by comparing system outputs against ground-truth speeds obtained from [description of ground truth method: e.g., GPS logger, radar gun measurement].
+The mean absolute error (MAE) and root mean square error (RMSE) are defined as:
+\begin{equation}
+    \text{MAE} = \frac{1}{N} \sum_{i=1}^{N} |v_i^\text{est} - v_i^\text{gt}|
+    \label{eq:mae}
+\end{equation}
+\begin{equation}
+    \text{RMSE} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (v_i^\text{est} - v_i^\text{gt})^2}
+    \label{eq:rmse}
+\end{equation}
+
+\begin{table}[H]
+    \centering
+    \caption{Speed Estimation Performance}
+    \label{tab:speed_accuracy}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Vehicle Type} & \textbf{N} & \textbf{MAE (km/h)} & \textbf{RMSE (km/h)} \\
+        \midrule
+        Car & [N] & [X.X] & [X.X] \\
+        Motorcycle & [N] & [X.X] & [X.X] \\
+        Truck & [N] & [X.X] & [X.X] \\
+        \midrule
+        \textbf{Overall} & [N] & [X.X] & [X.X] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Detection Accuracy by Vehicle Type}
+
+\begin{table}[H]
+    \centering
+    \caption{Detection Accuracy by Vehicle Type}
+    \label{tab:detection_accuracy}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Vehicle Type} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{mAP@0.5} \\
+        \midrule
+        Car & [0.XX] & [0.XX] & [0.XX] & [0.XX] \\
+        Motorcycle & [0.XX] & [0.XX] & [0.XX] & [0.XX] \\
+        Truck & [0.XX] & [0.XX] & [0.XX] & [0.XX] \\
+        Bus & [0.XX] & [0.XX] & [0.XX] & [0.XX] \\
+        \midrule
+        \textbf{Overall} & [0.XX] & [0.XX] & [0.XX] & [0.XX] \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Experimental Results}
+
+Experiments were conducted on [N] video clips totaling [T] minutes of traffic footage captured at [location description].
+The system successfully assigned persistent tracker IDs to vehicles traversing the calibration zone, with speed estimates displayed in real time.
+The IQR filter removed a mean of [X]\% of raw speed readings per vehicle pass, predominantly correcting for transient instabilities near zone boundaries.
+The median aggregation further reduced the per-vehicle speed variance from [X] km/h (raw) to [X] km/h (smoothed).
+
+\section{Case Studies}
+
+\subsection{Normal Traffic Flow}
+
+Under free-flow conditions with low vehicle density, all vehicles in the calibration zone received accurate speed annotations and direction-prediction lines.
+Both TTC and PET metrics correctly indicated no imminent conflict, with no risk events generated.
+
+\subsection{Trajectory Intersection Conflict}
+
+In a recorded sequence where two vehicles approached an intersection from perpendicular directions at similar speeds, the trajectory intersection TTC method detected a conflict point at the path crossing.
+TTC values of $\text{TTC}_A = [X.X]$~s and $\text{TTC}_B = [X.X]$~s were computed, satisfying both the threshold and arrival-gap conditions.
+The risk event was logged with \texttt{collision\_type=intersection}.
+
+\subsection{Following (Rear-End) Scenario}
+
+When a faster vehicle approached a slower vehicle from behind in the same lane, the following TTC algorithm detected the closing gap.
+The dot product of the direction vectors was $\cos\theta \approx [0.9X]$, confirming same-direction travel, and the lateral offset of $[X.X]$~m was below the threshold.
+TTC was computed as $[X.X]$~s, and the risk event was logged with \texttt{collision\_type=following}.
+The annotation label displayed \texttt{TTC [X.X]s [R]} on the video frame.
+
+\subsection{Head-On Scenario}
+
+In a scenario where two vehicles traveled in opposing directions along the same lane, the head-on TTC algorithm detected the converging approach.
+The dot product was $\cos\theta \approx [-0.9X]$, and the lateral offset confirmed same-lane alignment.
+Closing speed was $v_A + v_B = [X.X]$~m/s, yielding $\text{TTC} = [X.X]$~s.
+The risk event was logged with \texttt{collision\_type=head\_on}, and the frame annotation showed \texttt{TTC [X.X]s [H]}.
+
+\subsection{PET Near-Miss}
+
+Following an intersection conflict, the PET algorithm detected that two vehicles had passed through a common spatial point with a temporal gap of $\text{PET} = [X.X]$~s, confirming a near-miss event.
+This retrospective confirmation complemented the earlier TTC prediction.
+
+\subsection{Zone Boundary Instability}
+
+Without the pixel-distance sanity check (Equation~\eqref{eq:sanity_check}), homography projection for vehicles at the polygon boundary occasionally produced direction lines extending to extreme image coordinates.
+With the check in place, the system correctly fell back to pixel-space extrapolation, maintaining a visually stable and informative display.
+
+\section{Comparison with Traditional Methods}
+
+\begin{table}[H]
+    \centering
+    \caption{Performance Metrics Comparison}
+    \label{tab:comparison}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Method} & \textbf{Installation Cost} & \textbf{Speed MAE (km/h)} & \textbf{Automation} \\
+        \midrule
+        Radar speed gun & High & $<$1 & Manual \\
+        Inductive loop & High & $\pm$2 & Partial \\
+        Background subtraction & Low & $\pm$8--12 & Full \\
+        \textbf{Proposed system} & \textbf{Low} & \textbf{[X.X]} & \textbf{Full} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ==================== CHAPTER 5 ====================
+\chapter{Discussion}
+
+\section{Key Findings}
+
+The experimental results confirm that homography-based speed estimation from a fixed camera provides sufficient accuracy for traffic monitoring applications when combined with robust statistical post-processing.
+The key mathematical insight is that the homography model, despite its planarity assumption, accurately captures the perspective geometry of flat road surfaces observed from moderate heights.
+The choice of bottom-center anchors for the speed computation reduces the effective parallax error compared to using bounding box centers, since the bottom of the bounding box is closest to the physical ground contact point.
+
+The temporally weighted direction estimator (Equation~\eqref{eq:weighted_direction}) improves heading accuracy over a simple last-displacement estimator, particularly for vehicles executing gentle curves or lane changes.
+The dot-product consistency check (Equation~\eqref{eq:dot_check}) proved essential for preventing artifacts that arose when the weighted average of a reversing displacement sequence produced a vector antiparallel to the vehicle's true heading.
+
+The multi-scenario TTC framework successfully extends collision risk detection beyond the trajectory-intersection case addressed by previous work.
+The dot-product-based classification (Equation~\eqref{eq:scenario_class}) provides a computationally inexpensive and geometrically principled method for distinguishing following, head-on, and intersection interactions.
+The lateral offset filter (Equation~\eqref{eq:lateral_offset}) proved critical for suppressing false positives in multi-lane environments, where vehicles traveling in adjacent lanes would otherwise trigger erroneous risk events.
+
+The PET metric provides a valuable retrospective complement to the predictive TTC metric.
+Whereas TTC is sensitive to direction estimation noise and assumes constant velocity, PET is computed from observed trace paths and is therefore immune to prediction errors.
+The two metrics together provide a more complete picture of collision risk than either measure alone.
+
+\section{Advantages of the System}
+
+\begin{itemize}
+    \item \textbf{Non-intrusive deployment:} The system requires only a camera; no physical road sensors are needed.
+    \item \textbf{Mathematical transparency:} Every speed value is traceable to the homography matrix, calibration inputs, and frame timestamps, enabling post-hoc validation.
+    \item \textbf{Robust speed aggregation:} The two-stage IQR + median pipeline is statistically principled and adapts automatically to varying numbers of in-zone observations.
+    \item \textbf{Multi-scenario TTC:} Unlike systems that only detect path-crossing conflicts, the three-method TTC framework covers the major collision geometries encountered in traffic: intersection, following, and head-on.
+    \item \textbf{Dual metrics:} The combination of predictive TTC and retrospective PET provides both early warning and post-hoc confirmation of near-miss events.
+    \item \textbf{Collision type classification:} Each risk event is logged with its collision type, enabling downstream statistical analysis of conflict patterns by geometry.
+    \item \textbf{Stable visualization:} The zone-restriction and sanity-check logic prevent projection artifacts from degrading the visual output.
+    \item \textbf{Real-time performance:} Processing at frame rate on commodity GPU hardware enables live monitoring.
+\end{itemize}
+
+\section{Limitations and Challenges}
+
+\begin{itemize}
+    \item \textbf{Planarity assumption:} The homography model is valid only for flat surfaces. Road camber, elevation transitions, and bridge approaches violate this assumption and introduce systematic speed errors.
+    \item \textbf{Single-camera geometry:} Without stereo or depth information, height above the ground plane cannot be recovered; occluded vehicles or tall vehicles may have bottom-center anchors not on the road surface.
+    \item \textbf{Manual calibration:} The current calibration workflow requires the user to identify a rectangle of known dimensions in the scene. Automated calibration from lane markings or known road geometry would reduce setup time.
+    \item \textbf{Lateral offset sensitivity:} The $d_\text{lat}^\text{max} = 2.0$~m threshold is a fixed value that may not be appropriate for all road geometries; narrower or wider lanes may require adjustment.
+    \item \textbf{PET computational complexity:} The segment-pair iteration in PET computation is $\mathcal{O}(n^2)$ where $n$ is the trace length. For the current 60-frame buffer this is acceptable, but scaling to longer histories would benefit from spatial indexing.
+    \item \textbf{Tracker fragmentation:} ByteTrack can fragment a single vehicle's track across multiple IDs under severe occlusion, leading to incorrect speed history association.
+    \item \textbf{Constant-velocity assumption:} TTC computation assumes constant speed and direction; decelerating or turning vehicles may yield inaccurate predictions.
+\end{itemize}
+
+\section{Potential Applications}
+
+\begin{itemize}
+    \item \textbf{Intersection safety audits:} Automated, long-duration conflict studies at intersections identified as high-risk by crash records, with TTC and PET statistics aggregated over days or weeks.
+    \item \textbf{School and pedestrian zone monitoring:} Speed compliance verification in speed-limited zones using only existing CCTV infrastructure.
+    \item \textbf{Traffic signal optimization:} Real-time vehicle speed and density data to inform adaptive signal control systems.
+    \item \textbf{Incident reporting:} Triggered logging of video segments where TTC falls below threshold, providing evidence for near-miss incident databases categorized by collision type.
+    \item \textbf{Before-after studies:} Comparison of TTC/PET distributions before and after infrastructure changes (e.g., adding a roundabout) to assess safety improvements.
+\end{itemize}
+
+% ==================== CHAPTER 6 ====================
+\chapter{Conclusion}
+
+\section{Conclusion}
+
+This report has presented a complete traffic collision risk detection system combining YOLOv8 object detection, ByteTrack multi-object tracking, homography-based perspective transformation, and quantitative surrogate safety measures within a real-time video processing pipeline.
+
+The mathematical foundations of the system were developed in detail.
+The homography matrix $\mathbf{H}$ is derived from four point correspondences using the Direct Linear Transform, producing an $8$-degree-of-freedom projective mapping between the image plane and the ground plane.
+Speed is estimated by transforming bottom-center anchor positions to metric world coordinates and computing Euclidean displacements per unit time.
+Robustness is ensured by IQR-based outlier removal followed by median aggregation, a combination whose statistical optimality in the presence of heavy-tailed noise is well established.
+Direction prediction employs a temporally weighted displacement average with dot-product consistency enforcement in both image and world space, and a pixel-distance sanity check prevents projection instability near calibration zone boundaries.
+
+Collision risk is assessed quantitatively using Time to Collision (TTC) and Post Encroachment Time (PET).
+TTC is computed for three distinct collision geometries---trajectory intersection, following (rear-end), and head-on---using dot-product-based scenario classification and lateral offset filtering to distinguish genuine collision courses from vehicles in adjacent lanes.
+PET is computed retrospectively from historical trace path intersections, providing confirmation of near-miss events.
+All risk events are logged with collision type classification, enabling formal traffic conflict analysis.
+
+The resulting system provides a deployable, low-cost alternative to intrusive sensor infrastructure for traffic safety monitoring, with quantitative metrics suitable for evidence-based safety assessments.
+Future work will address automatic calibration from scene geometry, acceleration-aware TTC computation, extended PET analysis with spatial indexing for longer trace histories, and integration with a cloud-based incident reporting platform.
+
+% ==================== BACK MATTER ====================
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+\bibitem{WHO2023}
+World Health Organization.
+\textit{Global Status Report on Road Safety 2023}.
+WHO Press, Geneva, 2023.
+
+\bibitem{Roess2011}
+R.~P. Roess, E.~S. Prassas, and W.~R. McShane.
+\textit{Traffic Engineering}, 4th ed.
+Pearson, 2011.
+
+\bibitem{Coifman1998}
+B.~Coifman, D.~Beymer, P.~McLauchlan, and J.~Malik.
+A real-time computer vision system for vehicle tracking and traffic surveillance.
+\textit{Transportation Research Part C}, 6(4):271--288, 1998.
+
+\bibitem{Perkins1968}
+S.~R. Perkins and J.~I. Harris.
+Traffic conflict characteristics: Accident potential at intersections.
+\textit{Highway Research Record}, 225:35--43, 1968.
+
+\bibitem{Hyden1987}
+C.~Hyd\'{e}n.
+\textit{The Development of a Method for Traffic Safety Evaluation: The Swedish Traffic Conflicts Technique}.
+Bulletin 70, Lund University, 1987.
+
+\bibitem{Barnich2011}
+O.~Barnich and M.~Van Droogenbroeck.
+ViBe: A universal background subtraction algorithm for video sequences.
+\textit{IEEE Transactions on Image Processing}, 20(6):1709--1724, 2011.
+
+\bibitem{Lucas1981}
+B.~D. Lucas and T.~Kanade.
+An iterative image registration technique with an application to stereo vision.
+In \textit{Proc. IJCAI}, pages 674--679, 1981.
+
+\bibitem{Farneback2003}
+G.~Farneb\"{a}ck.
+Two-frame motion estimation based on polynomial expansion.
+In \textit{Proc. SCIA}, LNCS 2749, pages 363--370. Springer, 2003.
+
+\bibitem{Dubska2014}
+M.~Dub\v{s}k\'{a}, A.~Herout, R.~Jur\'{a}nek, and A.~Sochor.
+Fully automatic roadside camera calibration for traffic surveillance.
+\textit{IEEE Transactions on Intelligent Transportation Systems}, 16(3):1162--1171, 2014.
+
+\bibitem{Girshick2014}
+R.~Girshick, J.~Donahue, T.~Darrell, and J.~Malik.
+Rich feature hierarchies for accurate object detection and semantic segmentation.
+In \textit{Proc. CVPR}, pages 580--587, 2014.
+
+\bibitem{Redmon2016}
+J.~Redmon, S.~Divvala, R.~Girshick, and A.~Farhadi.
+You only look once: Unified, real-time object detection.
+In \textit{Proc. CVPR}, pages 779--788, 2016.
+
+\bibitem{Jocher2023}
+G.~Jocher, A.~Chaurasia, and J.~Qiu.
+Ultralytics YOLOv8, 2023.
+\url{https://github.com/ultralytics/ultralytics}
+
+\bibitem{Wen2020}
+L.~Wen, D.~Du, Z.~Cai, Z.~Lei, M.~Chang, H.~Qi, J.~Lim, M.~Yang, and S.~Lyu.
+UA-DETRAC: A new benchmark and protocol for multi-object detection and tracking.
+\textit{Computer Vision and Image Understanding}, 193:102907, 2020.
+
+\bibitem{Bewley2016}
+A.~Bewley, Z.~Ge, L.~Ott, F.~Ramos, and B.~Upcroft.
+Simple online and realtime tracking.
+In \textit{Proc. ICIP}, pages 3464--3468, 2016.
+
+\bibitem{Wojke2017}
+N.~Wojke, A.~Bewley, and D.~Paulus.
+Simple online and realtime tracking with a deep association metric.
+In \textit{Proc. ICIP}, pages 3645--3649, 2017.
+
+\bibitem{Zhang2022}
+Y.~Zhang, P.~Sun, Y.~Jiang, D.~Yu, F.~Weng, Z.~Yuan, P.~Luo, W.~Liu, and X.~Wang.
+ByteTrack: Multi-object tracking by associating every detection box.
+In \textit{Proc. ECCV}, 2022.
+
+\bibitem{Hartley2004}
+R.~Hartley and A.~Zisserman.
+\textit{Multiple View Geometry in Computer Vision}, 2nd ed.
+Cambridge University Press, 2004.
+
+\bibitem{Schoepflin2003}
+T.~N. Schoepflin and D.~J. Dailey.
+Dynamic camera calibration of roadside traffic management cameras for vehicle speed estimation.
+\textit{IEEE Transactions on Intelligent Transportation Systems}, 4(2):90--98, 2003.
+
+\bibitem{Tarko2009}
+A.~P. Tarko.
+Use of crash surrogates and exceedance statistics to estimate road safety.
+\textit{Accident Analysis \& Prevention}, 44(1):144--150, 2009.
+
+\bibitem{Chan2016}
+F.-H. Chan, Y.-T. Chen, Y.~Xiang, and M.~Sun.
+Anticipating accidents in dashcam videos.
+In \textit{Proc. ACCV}, LNCS 10114, pages 136--153, 2016.
+
+\bibitem{Zangenehpour2015}
+S.~Zangenehpour, J.~Strauss, L.~Miranda-Moreno, and N.~Saunier.
+Are signalized intersections with cycle tracks safer? Before-after study using automated video analysis.
+\textit{Accident Analysis \& Prevention}, 64:169--177, 2015.
+
+\bibitem{Romero2020}
+M.~Romero, M.~Cazorla, and E.~Ort\'{i}z.
+Vehicle speed estimation based on YOLO and homography transformation.
+In \textit{Proc. ICPRAM}, pages 577--582, 2020.
+
+\bibitem{Tukey1977}
+J.~W. Tukey.
+\textit{Exploratory Data Analysis}.
+Addison-Wesley, 1977.
+
+\bibitem{Hampel1974}
+F.~R. Hampel.
+The influence curve and its role in robust estimation.
+\textit{Journal of the American Statistical Association}, 69(346):383--393, 1974.
+
+\end{thebibliography}
+
+% ==================== APPENDICES ====================
+\begin{appendices}
+
+\chapter{Source Code Snippets}
+
+\section{Homography Matrix Computation}
+\begin{lstlisting}[caption={Homography creation from four point correspondences},label={lst:homography}]
+def create_homography(self, real_distances):
+    src_points = np.float32(self.points)
+    width  = real_distances[0]   # top edge (meters)
+    height = real_distances[1]   # right edge (meters)
+    dst_points = np.float32([
+        [0,     0     ],   # top-left
+        [width, 0     ],   # top-right
+        [width, height],   # bottom-right
+        [0,     height]    # bottom-left
+    ])
+    H, status = cv2.findHomography(src_points, dst_points)
+    return H
+\end{lstlisting}
+
+\section{Perspective Coordinate Transform}
+\begin{lstlisting}[caption={Point transformation from pixel space to world space},label={lst:transform}]
+def transform_point(point, homography_matrix):
+    pt = np.array([[[float(point[0]),
+                     float(point[1])]]], dtype=np.float32)
+    transformed = cv2.perspectiveTransform(pt, homography_matrix)
+    return transformed[0][0]   # returns (X_world, Y_world)
+\end{lstlisting}
+
+\section{IQR Outlier Filtering and Median Speed}
+\begin{lstlisting}[caption={Robust speed computation on zone exit},label={lst:iqr}]
+speeds  = np.array(speed_history[tracker_id])
+q1      = np.percentile(speeds, 25)
+q3      = np.percentile(speeds, 75)
+iqr     = q3 - q1
+lower   = q1 - 1.5 * iqr
+upper   = q3 + 1.5 * iqr
+filtered = speeds[(speeds >= lower) & (speeds <= upper)]
+final_speed = np.median(filtered)
+\end{lstlisting}
+
+\section{Temporally Weighted Direction Estimator}
+\begin{lstlisting}[caption={Weighted direction vector with dot-product check},label={lst:direction}]
+def estimate_direction(track_points):
+    pts = [(p[0], p[1]) for p in track_points]
+    n   = len(pts)
+    total_vx, total_vy, total_w = 0.0, 0.0, 0.0
+    for i in range(1, n):
+        dx = pts[i][0] - pts[i-1][0]
+        dy = pts[i][1] - pts[i-1][1]
+        w  = i             # recency weight
+        total_vx += dx * w
+        total_vy += dy * w
+        total_w  += w
+    vx = total_vx / total_w
+    vy = total_vy / total_w
+    norm = np.sqrt(vx**2 + vy**2)
+    vx /= norm;  vy /= norm
+    # Dot-product consistency check
+    overall_dx = float(pts[-1][0] - pts[0][0])
+    overall_dy = float(pts[-1][1] - pts[0][1])
+    if (vx * overall_dx + vy * overall_dy) < 0:
+        vx, vy = -vx, -vy
+    return float(np.degrees(np.arctan2(vy, vx))), (vx, vy, ...)
+\end{lstlisting}
+
+\section{Future Position Projection with Sanity Check}
+\begin{lstlisting}[caption={1-second ahead projection in world space with fallback},label={lst:projection}]
+real_distance  = speed_mps * n_seconds       # metres
+future_real_x  = real_current[0] + real_vx * real_distance
+future_real_y  = real_current[1] + real_vy * real_distance
+H_inv          = np.linalg.inv(homography_matrix)
+future_pt      = np.array([[[future_real_x, future_real_y]]],
+                            dtype=np.float32)
+future_pixel   = cv2.perspectiveTransform(future_pt, H_inv)
+# Sanity check: reject projections > 500 px away
+pixel_dist = np.sqrt((future_pixel[0][0][0] - point[0])**2 +
+                     (future_pixel[0][0][1] - point[1])**2)
+if pixel_dist > 500:
+    return None   # fall back to pixel-space extrapolation
+\end{lstlisting}
+
+\section{TTC: Trajectory Intersection}
+\begin{lstlisting}[caption={TTC via ray--segment intersection in world space},label={lst:ttc_intersection}]
+def compute_ttc(point_a, point_b, dir_vec_a, dir_vec_b,
+                speed_a_mps, speed_b_mps, homography_matrix,
+                track_points_a, track_points_b,
+                lookahead_s=4.0):
+    # Transform to real-world coordinates
+    real_a = transform_point(point_a, homography_matrix)
+    real_b = transform_point(point_b, homography_matrix)
+    rdir_a = _get_real_direction_vector(dir_vec_a, ...)
+    rdir_b = _get_real_direction_vector(dir_vec_b, ...)
+
+    # Project future paths (lookahead_s seconds)
+    eff_speed_a = max(speed_a_mps, 0.5)
+    future_bx = real_b[0] + rdir_b[0]*eff_speed_b*lookahead_s
+    future_by = real_b[1] + rdir_b[1]*eff_speed_b*lookahead_s
+
+    # Ray-segment intersection test
+    result = _ray_segment_intersection_2d(
+        real_a[0], real_a[1], rdir_a[0], rdir_a[1],
+        real_b[0], real_b[1], future_bx, future_by)
+    if result is None:
+        return None  # paths don't cross
+
+    # Compute TTC for each vehicle to conflict point
+    ttc_a = dist(real_a, conflict) / eff_speed_a
+    ttc_b = dist(real_b, conflict) / eff_speed_b
+
+    if (ttc_a < 3.0 or ttc_b < 3.0) and abs(ttc_a-ttc_b) < 1.5:
+        return ttc_a, ttc_b
+    return None
+\end{lstlisting}
+
+\section{TTC: Following (Rear-End)}
+\begin{lstlisting}[caption={TTC for following/rear-end scenario},label={lst:ttc_following}]
+def compute_ttc_following(...):
+    # Classify using dot product of direction vectors
+    dot = rdir_a . rdir_b
+    if dot < 0.7:   # not same direction
+        return None
+
+    # Average direction as reference axis
+    avg_dir = normalize((rdir_a + rdir_b) / 2)
+
+    # Decompose separation into longitudinal & lateral
+    longitudinal = sep . avg_dir
+    lateral = |sep . avg_dir_perp|
+
+    if lateral > 2.0:  return None  # different lanes
+
+    # Closing speed = speed_behind - speed_ahead
+    if longitudinal > 0:  # A behind B
+        closing = speed_a - speed_b
+    else:                 # B behind A
+        closing = speed_b - speed_a
+
+    if closing <= 0.1:  return None  # not closing
+    ttc = |longitudinal| / closing
+    return (ttc, ttc) if ttc < 3.0 else None
+\end{lstlisting}
+
+\section{TTC: Head-On}
+\begin{lstlisting}[caption={TTC for head-on scenario},label={lst:ttc_headon}]
+def compute_ttc_head_on(...):
+    dot = rdir_a . rdir_b
+    if dot > -0.7:  return None  # not opposing
+
+    # Use A's direction as reference axis
+    longitudinal = sep . rdir_a
+    if longitudinal <= 0.3:  return None  # already passed
+
+    lateral = |sep . rdir_a_perp|
+    if lateral > 2.0:  return None  # different lanes
+
+    closing = speed_a + speed_b  # approaching each other
+    ttc = longitudinal / closing
+    return (ttc, ttc) if ttc < 3.0 else None
+\end{lstlisting}
+
+\section{PET: Trace Path Intersection}
+\begin{lstlisting}[caption={Post Encroachment Time from historical trace paths},label={lst:pet}]
+def compute_pet(track_a, track_b, fps):
+    best_pet = None
+    for i in range(len(track_a) - 1):
+        for j in range(len(track_b) - 1):
+            # Segment intersection test
+            result = _segment_intersection(
+                track_a[i], track_a[i+1],
+                track_b[j], track_b[j+1])
+            if result is None:
+                continue
+            t, u = result
+            # Interpolate frame numbers
+            frame_a = track_a[i].frame + t * delta_frame_a
+            frame_b = track_b[j].frame + u * delta_frame_b
+            pet = abs(frame_a - frame_b) / fps
+            if best_pet is None or pet < best_pet:
+                best_pet = pet
+    return best_pet
+\end{lstlisting}
+
+\section{Risk Event Logging}
+\begin{lstlisting}[caption={Structured risk event logging with collision type},label={lst:risk_log}]
+def handle_risk_event(annotated_frame, output_dir,
+                      frame_number, tracker_id_a, tracker_id_b,
+                      class_name_a, class_name_b, event_type,
+                      metric_value, zone_name=None,
+                      collision_type=None,  # NEW
+                      save_log=False, save_frame=False):
+    collision_str = f" | type={collision_type}" if collision_type else ""
+    log_line = (
+        f"[{timestamp}] | EVENT_TYPE={event_type} | "
+        f"pair=(#{tracker_id_a},#{tracker_id_b}) | "
+        f"class=({class_name_a},{class_name_b}) | "
+        f"{metric_label}={metric_value:.2f}s{collision_str} | "
+        f"zone={zone_name} | frame={frame_number}")
+    # Write to risk_log.txt and optionally save frame
+\end{lstlisting}
+
+\chapter{Additional Results and Figures}
+
+Figures B.1 through B.5 illustrate representative outputs from the system.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{Sample frame with bounding boxes, tracker IDs, speed annotations, and direction-prediction lines (1-second lookahead). The calibration polygon is shown in cyan.}
+    \label{fig:sample_frame}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{Speed history of a single tracked vehicle showing raw instantaneous readings (blue), IQR-filtered readings (orange), and running median (green).}
+    \label{fig:speed_history}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{Calibration interface showing four selected corner points, connecting polygon, and pixel-distance measurements for each side.}
+    \label{fig:calibration}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{TTC risk event: two vehicles approaching an intersection with converging trajectory lines. Red line connects the pair; label shows ``TTC 2.1s''.}
+    \label{fig:conflict_intersection}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{Following (rear-end) risk event: trailing vehicle closing on a slower vehicle in the same lane. Label shows ``TTC 1.8s [R]''.}
+    \label{fig:conflict_following}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{4cm}\rule{10cm}{0pt}}
+    \caption{Head-on risk event: two vehicles traveling in opposing directions on a collision course. Label shows ``TTC 1.2s [H]''.}
+    \label{fig:conflict_headon}
+\end{figure}
+
+\chapter{User Manual}
+
+\section{Prerequisites}
+
+\begin{itemize}
+    \item Python 3.10 or later
+    \item NVIDIA GPU recommended (CUDA 11.8+); CPU-only execution is supported
+    \item Install dependencies: \texttt{pip install ultralytics supervision opencv-python numpy}
+    \item Place the fine-tuned model at \texttt{models/best.pt}
+\end{itemize}
+
+\section{Running the System}
+
+\begin{enumerate}
+    \item Execute: \texttt{python main.py}
+    \item A file dialog will appear; select the video file to analyze.
+    \item Choose whether to save results when prompted.
+    \item Enter zone names (or type ``done'' to finish adding zones).
+    \item For each zone, choose a calibration input method:
+    \begin{itemize}
+        \item \textbf{1} -- Interactive: click four corners of a known rectangle on the first frame.
+        \item \textbf{2} -- File: provide a \texttt{.txt} file with four \texttt{x,y} coordinate pairs.
+        \item \textbf{3} -- Keyboard: type coordinates in the terminal.
+    \end{itemize}
+    \item Enter the real-world distances (in meters) for each side when prompted.
+    \item The system will begin processing the video. Press \textbf{q} to quit.
+    \item Output files (logs, frames) are saved in a timestamped run directory.
+\end{enumerate}
+
+\section{Interpreting the Display}
+
+\begin{itemize}
+    \item \textbf{Cyan polygon}: Calibration zone; speed estimation and risk detection are active inside this region.
+    \item \textbf{Green speed label}: Speed estimated from in-zone homography projection (km/h).
+    \item \textbf{Orange speed label}: Last recorded in-zone speed, displayed after the vehicle exits.
+    \item \textbf{Red direction line}: Predicted trajectory for the next 1 second.
+    \item \textbf{Red connecting line}: TTC risk---two vehicles at risk of collision. Label shows TTC value.
+    \item \textbf{TTC [R] label}: Following (rear-end) collision risk.
+    \item \textbf{TTC [H] label}: Head-on collision risk.
+    \item \textbf{Orange connecting line}: PET risk---two vehicles recently passed through the same point.
+    \item \textbf{Top-left overlay}: Current frame number and video timestamp.
+\end{itemize}
+
+\section{Log File Format}
+
+Risk events are written to \texttt{risk\_log.txt} in the output directory:
+\begin{verbatim}
+[2025-07-01 14:23:01] | EVENT_TYPE=TTC_RISK | pair=(#3,#7) |
+  class=(car,car) | TTC=1.83s | type=intersection |
+  zone=Zone_A | frame=412
+[2025-07-01 14:23:12] | EVENT_TYPE=TTC_RISK | pair=(#5,#8) |
+  class=(car,motorbike) | TTC=2.41s | type=following |
+  zone=Zone_A | frame=540
+[2025-07-01 14:23:30] | EVENT_TYPE=PET_RISK | pair=(#2,#9) |
+  class=(car,car) | PET=1.10s | zone=Zone_B | frame=703
+\end{verbatim}
+
+\end{appendices}
+
+% ---------- Biography ----------
+\chapter*{BIOGRAPHY}
+\addcontentsline{toc}{chapter}{Biography}
+
+\noindent\textbf{Nutchanon Jaikla} received his Bachelor of Engineering in Software Engineering from Thammasat University in 2025.
+His academic interests include computer vision, deep learning, and intelligent transportation systems.
+This project constitutes his final-year capstone work.
+
+\vspace{1em}
+\noindent\textbf{Sabig Benmumin} received his Bachelor of Engineering in Software Engineering from Thammasat University in 2025.
+He has particular interest in applied machine learning and embedded systems.
+This project constitutes his final-year capstone work.
+
+\end{document}

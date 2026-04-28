@@ -1,10 +1,11 @@
 import cv2
+from torch import classes
 from ultralytics import YOLO
 import supervision as sv
 import os
 import numpy as np
 from collections import defaultdict, deque
-from filemanage import select_video_file, get_runid, create_outputfolder, handle_risk_event, select_txt_file
+from filemanage import select_video_file, get_runid, create_outputfolder, handle_risk_event, select_txt_file, select_model_file
 import get_fps
 
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
@@ -13,15 +14,14 @@ os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 SHOW_FRAME_INFO = True  # แสดง frame number / เวลา บนวิดีโอ
 
 # ==================== Risk Detection Config ====================
-TTC_THRESHOLD   = 3.0  # วินาที — ถ้า TTC_A หรือ TTC_B < ค่านี้ และ |TTC_A - TTC_B| < ARRIVAL_GAP ถือว่าเสี่ยง
+TTC_THRESHOLD   = 2.0  # วินาที — ถ้า TTC_A หรือ TTC_B < ค่านี้ และ |TTC_A - TTC_B| < ARRIVAL_GAP ถือว่าเสี่ยง
 ARRIVAL_GAP     = 1.5  # วินาที — ช่วงห่างสูงสุดของเวลาที่ทั้งคู่ถึง conflict point
 PET_THRESHOLD   = 2.0  # วินาที — ถ้า PET < ค่านี้ถือว่าเสี่ยง (near-miss จาก trace จริง)
 RISK_COOLDOWN_S = 5.0  # วินาที — เว้นระยะก่อน log คู่เดิมซ้ำ (ป้องกัน log ระเบิด)
-TTC_LOOKAHEAD_S = 4.0  # วินาที — ความยาว future path ที่ใช้หา conflict point
+TTC_LOOKAHEAD_S = 2.0  # วินาที — ความยาว future path ที่ใช้หา conflict point
 LATERAL_OFFSET_MAX  = 2.0   # เมตร — ระยะห่างด้านข้างสูงสุดที่ถือว่า "เลนเดียวกัน" (ใช้กับ following / head-on)
 DOT_FOLLOWING_MIN   = 0.7   # dot product ขั้นต่ำ สำหรับถือว่า "ทิศทางเดียวกัน" (following / rear-end)
 DOT_HEADON_MAX      = -0.7  # dot product สูงสุด สำหรับถือว่า "สวนทาง" (head-on)
-
 
 class CalibrationTool:
     def __init__(self):
@@ -277,7 +277,6 @@ class CalibrationTool:
                 print(f"Failed to calibrate zone '{zone_name}'")
         return zones
 
-
 # ==============================================================
 # Geometry Helpers
 # ==============================================================
@@ -289,7 +288,6 @@ def transform_point(point, homography_matrix):
     pt = np.array([[[float(point[0]), float(point[1])]]], dtype=np.float32)
     return cv2.perspectiveTransform(pt, homography_matrix)[0][0]
 
-
 def calculate_real_distance(p1, p2, homography_matrix):
     """คำนวณระยะทางจริงระหว่าง 2 จุด (เมตร)"""
     if homography_matrix is None:
@@ -300,12 +298,10 @@ def calculate_real_distance(p1, p2, homography_matrix):
         return None
     return float(np.hypot(r2[0] - r1[0], r2[1] - r1[1]))
 
-
 def is_point_in_polygon(point, polygon):
     if polygon is None:
         return True
     return cv2.pointPolygonTest(polygon, (float(point[0]), float(point[1])), False) >= 0
-
 
 def estimate_direction(track_points):
     """
@@ -349,7 +345,6 @@ def estimate_direction(track_points):
     
     x0, y0 = float(pts[-1][0]), float(pts[-1][1])
     return float(np.degrees(np.arctan2(vy, vx))), (vx, vy, x0, y0)
-
 
 def project_future_point(point, direction_vector, speed_mps, n_seconds, homography_matrix, track_points):
     """คาดคะเนตำแหน่งในอนาคตของวัตถุ (pixel space) — ใช้วาด direction line บน frame"""
@@ -397,7 +392,6 @@ def project_future_point(point, direction_vector, speed_mps, n_seconds, homograp
         return None
     return result
 
-
 def _get_real_direction_vector(direction_vector, homography_matrix, track_points):
     """
     แปลง direction vector จาก pixel space → real-world space
@@ -434,7 +428,6 @@ def _get_real_direction_vector(direction_vector, homography_matrix, track_points
 
     return real_vx, real_vy
 
-
 def draw_direction_line(frame, point, direction_vector, track_points=None, speed_mps=None,
                         n_seconds=2.0, homography_matrix=None,
                         fallback_length=60, color=(0, 0, 255), thickness=2):
@@ -453,16 +446,12 @@ def draw_direction_line(frame, point, direction_vector, track_points=None, speed
              (int(point[0] + vx * fallback_length), int(point[1] + vy * fallback_length)),
              color, thickness)
 
-
 def is_near_frame_edge(point, frame_shape, margin=50):
     h, w = frame_shape[:2]
     x, y = point
     return x < margin or x > w - margin or y < margin or y > h - margin
 
-
-# ==============================================================
 # TTC — Trajectory Intersection Method
-# ==============================================================
 
 def _ray_segment_intersection_2d(ox, oy, dx, dy, px, py, ex, ey):
     """
@@ -484,7 +473,6 @@ def _ray_segment_intersection_2d(ox, oy, dx, dy, px, py, ex, ey):
     if t >= 0 and 0.0 <= u <= 1.0:
         return t, u
     return None
-
 
 def compute_ttc(
     point_a, point_b,
@@ -581,7 +569,6 @@ def compute_ttc(
 
     return None
 
-
 def compute_ttc_following(
     point_a, point_b,
     dir_vec_a, dir_vec_b,
@@ -668,7 +655,6 @@ def compute_ttc_following(
 
     return None
 
-
 def compute_ttc_head_on(
     point_a, point_b,
     dir_vec_a, dir_vec_b,
@@ -740,10 +726,7 @@ def compute_ttc_head_on(
 
     return None
 
-
-# ==============================================================
 # PET — Trace Path Intersection
-# ==============================================================
 
 def _segment_intersection(p1, p2, p3, p4):
     """หาจุดตัดของ segment (p1→p2) กับ (p3→p4) คืน (t, u) หรือ None"""
@@ -758,7 +741,6 @@ def _segment_intersection(p1, p2, p3, p4):
     if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0:
         return t, u
     return None
-
 
 def compute_pet(track_a, track_b, fps):
     """
@@ -808,10 +790,7 @@ def compute_pet(track_a, track_b, fps):
 
     return best_pet
 
-
-# ==============================================================
 # Risk Event Cooldown
-# ==============================================================
 
 def _risk_pair_key(id_a, id_b):
     return frozenset({id_a, id_b})
@@ -857,14 +836,16 @@ def capture_frame_or_not() -> bool:
 # ==============================================================
 
 if __name__ == "__main__":
+    # model = YOLO(select_model_file())
+    model = YOLO(r"models\\RT-DETR\\rtdetr-l.pt")
     video_path = select_video_file()
     cap = cv2.VideoCapture(video_path)
+    classes_to_predict = [0, 1, 2, 3, 5, 7]
 
     speed_memory     = defaultdict(lambda: deque(maxlen=5))
     # เก็บ (x, y, frame_count) — frame_count ใช้ interpolate เวลาสำหรับ PET
     direction_memory = defaultdict(lambda: deque(maxlen=60))
 
-    model = YOLO(r"models/best.pt")
 
     REAL_FPS = get_fps.get_video_fps_cv2(video_path=video_path)
     PROCESS_EVERY_N_FRAME = 1
@@ -933,7 +914,7 @@ if __name__ == "__main__":
             cv2.putText(frame, zone['name'], (cx-40, cy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-        results = model.predict(source=frame, stream=True, conf=0.65)
+        results = model.predict(source=frame, stream=True, conf=0.65, classes=classes_to_predict)
         result  = next(results)
 
         detections = sv.Detections.from_ultralytics(result)
